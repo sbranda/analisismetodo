@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Legajo N.º 1 — Simulador de Análisis de Sistemas</title>
+<meta name="description" content="Simulador para practicar relevamiento, elección de metodología y planificación de sprints.">
+<meta name="theme-color" content="#1B2430">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --paper:#EDE6D6;
+    --paper-dark:#E1D8C4;
+    --ink:#232323;
+    --ink-soft:#5a5346;
+    --navy:#1B2430;
+    --navy-soft:#2A3444;
+    --stamp:#B33A2E;
+    --teal:#3D7068;
+    --mustard:#C89B3C;
+    --line:#c9bfa8;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--navy);
+    color:var(--ink);
+    font-family:Georgia,'Times New Roman',serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .mono{font-family:'Courier New',Courier,monospace;}
+  header.app-header{
+    background:var(--navy);
+    color:var(--paper);
+    padding:18px 16px 0 16px;
+    text-align:center;
+    border-bottom:6px solid var(--navy-soft);
+  }
+  header.app-header h1{
+    font-family:'Courier New',Courier,monospace;
+    font-size:1.15rem;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin:0 0 4px 0;
+  }
+  header.app-header p{
+    font-size:.78rem;
+    color:#a9b3c2;
+    margin:0 0 14px 0;
+    font-family:'Courier New',monospace;
+  }
+
+  /* Folder tab navigation */
+  nav.tabs{
+    display:flex;
+    gap:6px;
+    max-width:900px;
+    margin:0 auto;
+    padding:0 8px;
+  }
+  nav.tabs button{
+    flex:1;
+    background:var(--navy-soft);
+    color:#c7cedb;
+    border:none;
+    border-radius:8px 8px 0 0;
+    padding:10px 6px 12px 6px;
+    font-family:'Courier New',monospace;
+    font-size:.72rem;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    cursor:pointer;
+    position:relative;
+    transition:background .15s, color .15s;
+  }
+  nav.tabs button.active{
+    background:var(--paper);
+    color:var(--ink);
+    font-weight:bold;
+  }
+  nav.tabs button .stamp-mini{
+    display:inline-block;
+    margin-left:4px;
+    color:var(--teal);
+    font-weight:bold;
+  }
+
+  main{
+    flex:1;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px);
+    background-size: 100% 32px;
+    padding:22px 16px 60px 16px;
+  }
+  .sheet{
+    max-width:820px;
+    margin:0 auto;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px 18px;
+    box-shadow:0 2px 0 var(--paper-dark);
+  }
+  .eyebrow{
+    font-family:'Courier New',monospace;
+    font-size:.7rem;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--stamp);
+    margin:0 0 6px 0;
+    border-bottom:2px solid var(--stamp);
+    display:inline-block;
+    padding-bottom:2px;
+  }
+  h2{
+    margin:6px 0 10px 0;
+    font-size:1.35rem;
+    line-height:1.25;
+  }
+  p{line-height:1.55;}
+  .lead{color:var(--ink-soft);}
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+    margin:12px 0;
+  }
+  .cliente-msg{
+    background:var(--paper-dark);
+    border-left:4px solid var(--teal);
+    padding:12px 14px;
+    border-radius:0 var(--radius) var(--radius) 0;
+    margin:10px 0;
+    font-style:italic;
+  }
+  .cliente-msg .quien{
+    font-style:normal;
+    font-family:'Courier New',monospace;
+    font-size:.68rem;
+    text-transform:uppercase;
+    color:var(--teal);
+    display:block;
+    margin-bottom:4px;
+    letter-spacing:1px;
+  }
+
+  .opciones{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+  button.opcion{
+    text-align:left;
+    background:#fff;
+    border:1px solid var(--line);
+    border-left:4px solid var(--ink-soft);
+    border-radius:var(--radius);
+    padding:10px 12px;
+    font-family:Georgia,serif;
+    font-size:.92rem;
+    color:var(--ink);
+    cursor:pointer;
+    transition:transform .1s, border-color .15s;
+  }
+  button.opcion:hover{border-left-color:var(--stamp); transform:translateX(2px);}
+  button.opcion:disabled{opacity:.4; cursor:not-allowed;}
+
+  button.primary{
+    background:var(--navy);
+    color:var(--paper);
+    border:none;
+    border-radius:var(--radius);
+    padding:11px 18px;
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    font-size:.8rem;
+    letter-spacing:1px;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  button.primary:hover{background:var(--navy-soft);}
+  button.secondary{
+    background:transparent;
+    color:var(--navy);
+    border:1px solid var(--navy);
+    border-radius:var(--radius);
+    padding:9px 16px;
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    font-size:.75rem;
+    cursor:pointer;
+    margin-top:10px;
+    margin-left:8px;
+  }
+
+  .estado-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'Courier New',monospace;
+    font-size:.72rem;
+    color:var(--ink-soft);
+    margin:14px 0 4px 0;
+    border-top:1px dashed var(--line);
+    padding-top:10px;
+  }
+  .req-list{list-style:none;padding:0;margin:8px 0;}
+  .req-list li{
+    padding:6px 8px;
+    font-size:.82rem;
+    border-bottom:1px dotted var(--line);
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+  }
+  .req-list li.ok::before{content:"✓"; color:var(--teal); font-weight:bold;}
+  .req-list li.falta::before{content:"—"; color:var(--stamp); font-weight:bold;}
+
+  /* stamp visual */
+  .sello{
+    display:inline-block;
+    border:3px solid var(--stamp);
+    color:var(--stamp);
+    font-family:'Courier New',monospace;
+    font-weight:bold;
+    text-transform:uppercase;
+    padding:6px 14px;
+    border-radius:6px;
+    transform:rotate(-6deg);
+    letter-spacing:2px;
+    font-size:.85rem;
+    margin:10px 0;
+  }
+
+  /* Módulo 2 chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;}
+  .chip{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:20px;
+    padding:6px 12px;
+    font-size:.8rem;
+    cursor:pointer;
+  }
+  .chip.sel{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .metodo-picker{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;}
+  .metodo-btn{
+    flex:1;
+    min-width:140px;
+    background:#fff;
+    border:2px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+    text-align:center;
+    cursor:pointer;
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    font-size:.8rem;
+  }
+  .metodo-btn.sel{border-color:var(--stamp); background:#fbeeec;}
+
+  /* Módulo 3 backlog */
+  .backlog-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:#fff;
+    margin-bottom:6px;
+    font-size:.85rem;
+  }
+  .backlog-item input{transform:scale(1.2);}
+  .pts{
+    margin-left:auto;
+    font-family:'Courier New',monospace;
+    background:var(--paper-dark);
+    padding:2px 8px;
+    border-radius:10px;
+    font-size:.75rem;
+  }
+  .capacidad-bar{
+    height:14px;
+    background:var(--paper-dark);
+    border-radius:8px;
+    overflow:hidden;
+    margin:6px 0 4px 0;
+    border:1px solid var(--line);
+  }
+  .capacidad-fill{height:100%; background:var(--teal); transition:width .2s;}
+  .capacidad-fill.over{background:var(--stamp);}
+
+  .evento-card{
+    border:1px solid var(--line);
+    border-left:4px solid var(--mustard);
+    background:#fff;
+    padding:12px 14px;
+    border-radius:0 var(--radius) var(--radius) 0;
+    margin:10px 0;
+  }
+  .evento-card .dia{
+    font-family:'Courier New',monospace;
+    font-size:.68rem;
+    text-transform:uppercase;
+    color:var(--mustard);
+    letter-spacing:1px;
+  }
+
+  footer{
+    text-align:center;
+    font-family:'Courier New',monospace;
+    font-size:.68rem;
+    color:#8892a0;
+    padding:14px 10px 26px 10px;
+    background:var(--navy);
+  }
+
+  @media (max-width:480px){
+    nav.tabs button{font-size:.62rem; padding:9px 4px 10px 4px;}
+    h2{font-size:1.15rem;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+
+  button:focus-visible, .chip:focus-visible, .metodo-btn:focus-visible{
+    outline:3px solid var(--teal);
+    outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>Legajo N.º 1</h1>
+  <p>Simulador de Análisis y Metodología de Sistemas</p>
+  <nav class="tabs" id="tabs">
+    <button data-mod="1" class="active">Módulo 1<br>Relevamiento <span class="stamp-mini" id="stamp1"></span></button>
+    <button data-mod="2">Módulo 2<br>Metodología <span class="stamp-mini" id="stamp2"></span></button>
+    <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
+  </nav>
+</header>
+
+<main id="main"></main>
+
+<footer>Desarrollado por Seba Branda</footer>
+
+<script>
+/* ============================================================
+   ESTADO GLOBAL Y PERSISTENCIA
+   ============================================================ */
+const STORAGE_KEY = "legajo-sistemas-v1";
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {
+    mod1:{completado:false, score:0},
+    mod2:{completado:false, score:0},
+    mod3:{completado:false, score:0}
+  };
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+let state = loadState();
+
+function refreshStamps(){
+  document.getElementById("stamp1").textContent = state.mod1.completado ? "✓" : "";
+  document.getElementById("stamp2").textContent = state.mod2.completado ? "✓" : "";
+  document.getElementById("stamp3").textContent = state.mod3.completado ? "✓" : "";
+}
+
+/* ============================================================
+   NAVEGACIÓN ENTRE MÓDULOS
+   ============================================================ */
+const main = document.getElementById("main");
+const tabButtons = document.querySelectorAll("#tabs button");
+let currentMod = 1;
+
+tabButtons.forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    currentMod = parseInt(btn.dataset.mod);
+    render();
+  });
+});
+
+function setActiveTab(){
+  tabButtons.forEach(b=>{
+    b.classList.toggle("active", parseInt(b.dataset.mod)===currentMod);
+  });
+}
+
+function render(){
+  setActiveTab();
+  refreshStamps();
+  main.innerHTML = "";
+  if(currentMod===1) renderModulo1();
+  if(currentMod===2) renderModulo2();
+  if(currentMod===3) renderModulo3();
+}
+
+/* ============================================================
+   MÓDULO 1 — RELEVAMIENTO (entrevista al cliente virtual)
+   ============================================================ */
+const REQUISITOS_M1 = [
+  {id:"rubros", label:"Qué productos / rubros vende"},
+  {id:"stock", label:"Cómo maneja el stock hoy"},
+  {id:"pedidos", label:"Cómo le llegan los pedidos"},
+  {id:"fiado", label:"Si maneja cuenta corriente / fiado"},
+  {id:"locales", label:"Si tiene uno o más locales"},
+  {id:"dispositivo", label:"Qué dispositivo usaría para el sistema"},
+  {id:"presupuesto", label:"Tiempo o plata disponible para el proyecto"},
+  {id:"usuarios", label:"Quién más va a usar el sistema"}
+];
+
+const PREGUNTAS_M1 = [
+  {id:"p1", texto:"¿Qué tipo de productos vende en el almacén?", tipo:"buena", reveals:"rubros",
+   respuesta:"De todo un poco: almacén, verdulería y una heladera con fiambres y lácteos. Lo que más rota es la verdulería."},
+  {id:"p2", texto:"Hoy, ¿cómo anota lo que tiene en stock?", tipo:"buena", reveals:"stock",
+   respuesta:"En un cuaderno de tapa dura, uno por mes. Cuando se termina la mercadería, tacho la línea. A veces me olvido de tachar."},
+  {id:"p3", texto:"¿Cómo le hacen los pedidos los clientes?", tipo:"buena", reveals:"pedidos",
+   respuesta:"La mayoría viene al mostrador, pero cada vez más me escriben por WhatsApp y algunos me llaman por teléfono."},
+  {id:"p4", texto:"¿Le fía a los clientes? ¿Cómo lleva esa cuenta?", tipo:"buena", reveals:"fiado",
+   respuesta:"Sí, a los vecinos de toda la vida les anoto en una libreta aparte. Es lo que más dolores de cabeza me da, se me pierden hojas."},
+  {id:"p5", texto:"¿Tiene un solo local o piensa abrir otro?", tipo:"buena", reveals:"locales",
+   respuesta:"Por ahora uno solo, pero mi hija quiere que abramos una sucursal en el barrio de al lado el año que viene."},
+  {id:"p6", texto:"¿En qué le gustaría usar el sistema: celular, computadora, tablet?", tipo:"buena", reveals:"dispositivo",
+   respuesta:"Yo solo sé usar el celular, la verdad. Una compu tengo pero la usa mi hija para la facultad."},
+  {id:"p7", texto:"¿Cuánto tiempo o presupuesto tiene pensado para este proyecto?", tipo:"buena", reveals:"presupuesto",
+   respuesta:"Quiero algo para antes de las fiestas, así que tengo unos dos meses. Plata no sobra, así que cuanto más simple mejor."},
+  {id:"p8", texto:"Además de usted, ¿quién más atendería o usaría el sistema?", tipo:"buena", reveals:"usuarios",
+   respuesta:"Mi hija a la tarde, y a veces un empleado los sábados que está solo de paso."},
+  {id:"p9", texto:"¿Le gustan las plantas?", tipo:"vaga", reveals:null,
+   respuesta:"Eh... sí, tengo unas macetas atrás del mostrador. ¿Eso qué tiene que ver con el sistema?"},
+  {id:"p10", texto:"Seguramente quiere algo con inteligencia artificial y todo automático, ¿no?", tipo:"cerrada", reveals:null,
+   respuesta:"No sé bien qué es eso... usted es el que sabe, dígame usted qué necesito."},
+  {id:"p11", texto:"¿Prefiere los colores celeste o verde para la pantalla?", tipo:"vaga", reveals:null,
+   respuesta:"Y... no sé, cualquiera está bien, lo importante es que me ayude con el negocio."},
+  {id:"p12", texto:"Un sistema con cuenta corriente automática le va a servir mucho, ¿verdad?", tipo:"cerrada", reveals:"fiado",
+   respuesta:"Sí, seguro... aunque no sé bien qué es 'cuenta corriente automática'. Yo le decía lo de la libreta de fiado."},
+  {id:"p13", texto:"¿Alguna vez probó algún programa o app para el negocio?", tipo:"buena", reveals:null,
+   respuesta:"Probé una app gratis pero era en inglés y no entendía nada, la borré a la semana."},
+  {id:"p14", texto:"¿Qué es lo que más bronca le da del día a día en el almacén?", tipo:"buena", reveals:null,
+   respuesta:"Cuando se me mezclan los pedidos por WhatsApp con los del mostrador y le doy a alguien lo que era de otro cliente."}
+];
+
+const MAX_TURNOS_M1 = 8;
+let m1 = {turno:0, preguntasHechas:[], requisitosObtenidos:new Set(), vagasElegidas:0, terminado:false};
+
+function resetM1(){
+  m1 = {turno:0, preguntasHechas:[], requisitosObtenidos:new Set(), vagasElegidas:0, terminado:false};
+}
+
+function renderModulo1(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(m1.terminado){
+    sheet.innerHTML = renderResultadoM1();
+    main.appendChild(sheet);
+    const btnReintentar = sheet.querySelector("#reintentar-m1");
+    if(btnReintentar) btnReintentar.addEventListener("click", ()=>{ resetM1(); render(); });
+    return;
+  }
+
+  const disponibles = PREGUNTAS_M1.filter(p => !m1.preguntasHechas.includes(p.id));
+  const restantes = MAX_TURNOS_M1 - m1.turno;
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Módulo 1 · Relevamiento</span>
+    <h2>Entrevista: Almacén "Doña Rosa"</h2>
+    <p class="lead">Tenés <strong>${restantes}</strong> preguntas para relevar los requisitos del sistema que necesita Doña Rosa para su almacén. Elegí bien — no todas las preguntas aportan lo mismo.</p>
+    <div class="cliente-msg"><span class="quien">Doña Rosa, dueña del almacén</span>
+      ${m1.turno===0 ? "Hola, mijo/a. Me dijeron que usted me puede armar un sistema para el negocio. Pregunte lo que necesite, yo le cuento." : ultimaRespuestaM1()}
+    </div>
+    <div class="opciones" id="opciones-m1"></div>
+    <div class="estado-bar">
+      <span>Preguntas usadas: ${m1.turno} / ${MAX_TURNOS_M1}</span>
+      <span>Requisitos relevados: ${m1.requisitosObtenidos.size} / ${REQUISITOS_M1.length}</span>
+    </div>
+    ${m1.turno>0 ? '<button class="secondary" id="terminar-m1">Terminar entrevista ahora</button>' : ''}
+  `;
+
+  main.appendChild(sheet);
+
+  const cont = sheet.querySelector("#opciones-m1");
+  disponibles.forEach(p=>{
+    const b = document.createElement("button");
+    b.className = "opcion";
+    b.textContent = p.texto;
+    b.disabled = restantes<=0;
+    b.addEventListener("click", ()=> elegirPreguntaM1(p));
+    cont.appendChild(b);
+  });
+
+  const btnTerminar = sheet.querySelector("#terminar-m1");
+  if(btnTerminar) btnTerminar.addEventListener("click", ()=>{ m1.terminado = true; guardarResultadoM1(); render(); });
+
+  if(restantes<=0 && !m1.terminado){
+    m1.terminado = true;
+    guardarResultadoM1();
+    render();
+  }
+}
+
+let ultimaPreguntaM1 = null;
+function ultimaRespuestaM1(){
+  if(!ultimaPreguntaM1) return "";
+  return ultimaPreguntaM1.respuesta;
+}
+
+function elegirPreguntaM1(p){
+  m1.turno++;
+  m1.preguntasHechas.push(p.id);
+  ultimaPreguntaM1 = p;
+  if(p.tipo==="vaga" || p.tipo==="cerrada") m1.vagasElegidas++;
+  if(p.reveals) m1.requisitosObtenidos.add(p.reveals);
+  render();
+}
+
+function guardarResultadoM1(){
+  const score = Math.round((m1.requisitosObtenidos.size / REQUISITOS_M1.length) * 100);
+  state.mod1.completado = true;
+  state.mod1.score = score;
+  saveState();
+}
+
+function renderResultadoM1(){
+  const score = Math.round((m1.requisitosObtenidos.size / REQUISITOS_M1.length) * 100);
+  const listaReq = REQUISITOS_M1.map(r=>{
+    const ok = m1.requisitosObtenidos.has(r.id);
+    return `<li class="${ok?'ok':'falta'}">${r.label}</li>`;
+  }).join("");
+
+  let comentario;
+  if(score>=87) comentario = "Relevamiento sólido. Cubriste casi todos los puntos clave antes de ponerte a diseñar nada — así se hace.";
+  else if(score>=50) comentario = "Relevamiento parcial. Conseguiste información útil, pero quedaron huecos que un desarrollador tendría que completar 'inventando' — ahí es donde nacen los malentendidos.";
+  else comentario = "Relevamiento insuficiente. Se gastaron turnos en preguntas vagas o cerradas que no aportaron datos nuevos. Con esta información todavía no se puede empezar a diseñar el sistema.";
+
+  const notaVagas = m1.vagasElegidas>0
+    ? `<p class="lead">Elegiste <strong>${m1.vagasElegidas}</strong> pregunta(s) vaga(s) o cerrada(s) (del tipo "seguro quiere algo con IA, ¿no?"). Esas preguntas plantan una idea en la cabeza del cliente en vez de escuchar lo que realmente necesita.</p>`
+    : `<p class="lead">No usaste ninguna pregunta cerrada o vaga — evitaste plantarle ideas al cliente antes de escucharlo. Buena técnica.</p>`;
+
+  return `
+    <span class="eyebrow">Resultado del relevamiento</span>
+    <h2>Legajo cerrado: ${score}% de cobertura</h2>
+    <div class="sello">${score>=70 ? "Expediente Completo" : "Requiere Ampliación"}</div>
+    <p>${comentario}</p>
+    ${notaVagas}
+    <p class="lead" style="margin-top:14px;">Requisitos relevados durante la entrevista:</p>
+    <ul class="req-list">${listaReq}</ul>
+    <button class="primary" id="reintentar-m1">Repetir entrevista</button>
+  `;
+}
+
+/* ============================================================
+   MÓDULO 2 — METODOLOGÍA (Cascada / Ágil / Híbrida)
+   ============================================================ */
+const CASOS_M2 = [
+  {
+    id:"c1",
+    titulo:"Sistema de liquidación de sueldos para una empresa",
+    texto:"Una empresa mediana necesita un sistema de liquidación de sueldos. Los requisitos legales e impositivos están claramente definidos por normativa, no van a cambiar durante el proyecto, y el cliente pide una fecha de entrega fija porque coincide con el cierre del ejercicio contable.",
+    razones:["requisitos_claros","fecha_fija","normativa_estable","bajo_riesgo_cambio"],
+    modelo:"cascada",
+    justificacion:"Cuando los requisitos son estables (vienen de una normativa) y hay una fecha fija no negociable, Cascada funciona bien: se puede planificar todo de antemano porque no se esperan cambios grandes de alcance."
+  },
+  {
+    id:"c2",
+    titulo:"App de pedidos para una cadena de heladerías",
+    texto:"Una cadena de heladerías quiere una app de pedidos, pero el dueño todavía no sabe bien qué funciones quiere: se le van ocurriendo ideas nuevas cada semana, y quiere ir viendo versiones tempranas para decidir sobre la marcha.",
+    razones:["requisitos_cambiantes","cliente_disponible","feedback_temprano","alcance_flexible"],
+    modelo:"agil",
+    justificacion:"Con requisitos que cambian seguido y un cliente que quiere ir viendo y decidiendo sobre versiones tempranas, Ágil (entregas cortas con feedback constante) reduce el riesgo de construir algo que después no sirve."
+  },
+  {
+    id:"c3",
+    titulo:"Sistema de control de una planta nuclear",
+    texto:"Se necesita actualizar el software de control de seguridad de una planta de energía. Cualquier error puede ser catastrófico, la documentación exhaustiva es obligatoria por regulación internacional, y los requisitos de seguridad están fijados por normas estrictas.",
+    razones:["criticidad_altisima","documentacion_obligatoria","normativa_estable","bajo_riesgo_cambio"],
+    modelo:"cascada",
+    justificacion:"En sistemas críticos con normativa estricta y necesidad de documentación exhaustiva y trazable, Cascada (o modelos formales derivados) es preferible: la iteración rápida de Ágil no encaja bien con la exigencia de validar todo antes de avanzar."
+  },
+  {
+    id:"c4",
+    titulo:"Rediseño de la web de una escuela secundaria",
+    texto:"La escuela quiere modernizar su sitio web. El equipo es de dos personas, el presupuesto es acotado, y la directora prefiere ver avances cada dos semanas para poder opinar antes de que se invierta más tiempo en algo que no le convence.",
+    razones:["equipo_chico","feedback_temprano","cliente_disponible","alcance_flexible"],
+    modelo:"agil",
+    justificacion:"Equipo chico, presupuesto ajustado y un cliente que quiere opinar seguido: entregas cortas tipo Ágil evitan invertir semanas en algo que después haya que rehacer por falta de feedback."
+  },
+  {
+    id:"c5",
+    titulo:"Sistema de historia clínica para un hospital, con migración de un sistema viejo",
+    texto:"Un hospital necesita migrar su sistema de historias clínicas. Los módulos de facturación y obra social tienen reglas fijas por convenios ya firmados (conviene planificarlos de antemano), pero los módulos de agenda médica y turnos online todavía se están definiendo con el personal y van a necesitar ajustes frecuentes.",
+    razones:["mixto_partes_estables_y_cambiantes","criticidad_media","cliente_disponible","normativa_parcial"],
+    modelo:"hibrida",
+    justificacion:"Cuando conviven partes con requisitos fijos (facturación, con reglas contractuales) y partes que todavía se están definiendo (agenda, turnos), un enfoque híbrido tiene sentido: Cascada para lo estable, Ágil para lo que se sigue ajustando con el usuario."
+  }
+];
+
+const RAZONES_LABELS = {
+  requisitos_claros:"Los requisitos están claros y no van a cambiar",
+  requisitos_cambiantes:"Los requisitos van a cambiar seguido",
+  fecha_fija:"Hay una fecha de entrega fija e innegociable",
+  normativa_estable:"Depende de una normativa que no cambia durante el proyecto",
+  normativa_parcial:"Parte del sistema depende de normativa fija, otra parte no",
+  bajo_riesgo_cambio:"Es un contexto de bajo riesgo de cambio de alcance",
+  cliente_disponible:"El cliente puede estar disponible seguido para dar feedback",
+  feedback_temprano:"Conviene mostrar avances tempranos para validar",
+  alcance_flexible:"El alcance puede ajustarse sobre la marcha",
+  equipo_chico:"El equipo es chico y necesita organizarse ágilmente",
+  criticidad_altisima:"Un error puede ser catastrófico / crítico",
+  criticidad_media:"Hay partes críticas y partes no críticas conviviendo",
+  mixto_partes_estables_y_cambiantes:"Conviven partes estables y partes que cambian"
+};
+
+let m2 = {indice:0, respuestas:[], metodoElegido:null, razonesElegidas:new Set(), mostrandoFeedback:false};
+
+function resetM2(){
+  m2 = {indice:0, respuestas:[], metodoElegido:null, razonesElegidas:new Set(), mostrandoFeedback:false};
+}
+
+function renderModulo2(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(m2.indice >= CASOS_M2.length){
+    sheet.innerHTML = renderResultadoM2();
+    main.appendChild(sheet);
+    const btn = sheet.querySelector("#reintentar-m2");
+    if(btn) btn.addEventListener("click", ()=>{ resetM2(); render(); });
+    return;
+  }
+
+  const caso = CASOS_M2[m2.indice];
+
+  if(m2.mostrandoFeedback){
+    const ultimaResp = m2.respuestas[m2.respuestas.length-1];
+    const acierto = ultimaResp.metodoElegido === caso.modelo;
+    sheet.innerHTML = `
+      <span class="eyebrow">Caso ${m2.indice+1} de ${CASOS_M2.length} · Devolución</span>
+      <h2>Elegiste: ${labelMetodo(ultimaResp.metodoElegido)}</h2>
+      <div class="sello">${acierto ? "Coincide con criterio experto" : "Mirá esto antes de seguir"}</div>
+      <p><strong>Metodología orientativa:</strong> ${labelMetodo(caso.modelo)}.</p>
+      <p class="lead">${caso.justificacion}</p>
+      <button class="primary" id="siguiente-caso">Siguiente caso</button>
+    `;
+    main.appendChild(sheet);
+    sheet.querySelector("#siguiente-caso").addEventListener("click", ()=>{
+      m2.indice++;
+      m2.metodoElegido = null;
+      m2.razonesElegidas = new Set();
+      m2.mostrandoFeedback = false;
+      render();
+    });
+    return;
+  }
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Caso ${m2.indice+1} de ${CASOS_M2.length}</span>
+    <h2>${caso.titulo}</h2>
+    <p class="lead">${caso.texto}</p>
+    <p><strong>1. ¿Qué metodología usarías?</strong></p>
+    <div class="metodo-picker" id="metodo-picker">
+      <div class="metodo-btn" data-m="cascada">Cascada</div>
+      <div class="metodo-btn" data-m="agil">Ágil</div>
+      <div class="metodo-btn" data-m="hibrida">Híbrida</div>
+    </div>
+    <p><strong>2. ¿Por qué? (elegí todas las razones que apliquen)</strong></p>
+    <div class="chips" id="chips-razones"></div>
+    <button class="primary" id="confirmar-caso" disabled>Confirmar elección</button>
+  `;
+  main.appendChild(sheet);
+
+  const picker = sheet.querySelector("#metodo-picker");
+  picker.querySelectorAll(".metodo-btn").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      picker.querySelectorAll(".metodo-btn").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel");
+      m2.metodoElegido = b.dataset.m;
+      actualizarBotonConfirmar(sheet);
+    });
+  });
+
+  const chipsCont = sheet.querySelector("#chips-razones");
+  // Mezclamos razones del caso con algunas distractoras de otros casos
+  const todasLasRazones = Object.keys(RAZONES_LABELS);
+  const razonesDelCaso = caso.razones;
+  const distractoras = todasLasRazones.filter(r=>!razonesDelCaso.includes(r)).sort(()=>Math.random()-0.5).slice(0,3);
+  const opcionesChips = [...razonesDelCaso, ...distractoras].sort(()=>Math.random()-0.5);
+
+  opcionesChips.forEach(r=>{
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.textContent = RAZONES_LABELS[r];
+    chip.addEventListener("click", ()=>{
+      if(m2.razonesElegidas.has(r)){
+        m2.razonesElegidas.delete(r);
+        chip.classList.remove("sel");
+      } else {
+        m2.razonesElegidas.add(r);
+        chip.classList.add("sel");
+      }
+      actualizarBotonConfirmar(sheet);
+    });
+    chipsCont.appendChild(chip);
+  });
+
+  sheet.querySelector("#confirmar-caso").addEventListener("click", ()=>{
+    m2.respuestas.push({
+      casoId: caso.id,
+      metodoElegido: m2.metodoElegido,
+      razonesElegidas: Array.from(m2.razonesElegidas)
+    });
+    m2.mostrandoFeedback = true;
+    render();
+  });
+}
+
+function actualizarBotonConfirmar(sheet){
+  const btn = sheet.querySelector("#confirmar-caso");
+  btn.disabled = !(m2.metodoElegido && m2.razonesElegidas.size>0);
+}
+
+function labelMetodo(m){
+  if(m==="cascada") return "Cascada";
+  if(m==="agil") return "Ágil";
+  if(m==="hibrida") return "Híbrida";
+  return m;
+}
+
+function renderResultadoM2(){
+  let aciertos = 0;
+  let razonesCorrectas = 0;
+  let razonesTotal = 0;
+  m2.respuestas.forEach(r=>{
+    const caso = CASOS_M2.find(c=>c.id===r.casoId);
+    if(r.metodoElegido === caso.modelo) aciertos++;
+    r.razonesElegidas.forEach(rz=>{
+      razonesTotal++;
+      if(caso.razones.includes(rz)) razonesCorrectas++;
+    });
+  });
+  const score = Math.round(((aciertos/CASOS_M2.length)*0.6 + (razonesTotal? (razonesCorrectas/razonesTotal):0)*0.4) * 100);
+  state.mod2.completado = true;
+  state.mod2.score = score;
+  saveState();
+
+  let comentario;
+  if(score>=80) comentario = "Buen criterio: elegiste la metodología pensando en el contexto de cada caso, no por costumbre o moda.";
+  else if(score>=50) comentario = "Criterio parcial: en algunos casos coincidiste con el enfoque esperado, en otros conviene repensar qué factores del contexto (requisitos, criticidad, disponibilidad del cliente) pesan más.";
+  else comentario = "Todavía no hay un criterio claro para elegir metodología. Repasá: no se elige Ágil o Cascada por preferencia personal, sino según qué tan estables son los requisitos y qué tan disponible está el cliente.";
+
+  return `
+    <span class="eyebrow">Resultado del módulo</span>
+    <h2>Coincidencia con criterio experto: ${score}%</h2>
+    <div class="sello">${score>=70 ? "Criterio Fundamentado" : "A Revisar"}</div>
+    <p>Acertaste la metodología orientativa en ${aciertos} de ${CASOS_M2.length} casos.</p>
+    <p class="lead">${comentario}</p>
+    <button class="primary" id="reintentar-m2">Repetir módulo</button>
+  `;
+}
+
+/* ============================================================
+   MÓDULO 3 — SPRINT SCRUM
+   ============================================================ */
+const BACKLOG_M3 = [
+  {id:"h1", nombre:"Alta de productos con foto", pts:5},
+  {id:"h2", nombre:"Carrito de compras básico", pts:8},
+  {id:"h3", nombre:"Login de clientes", pts:5},
+  {id:"h4", nombre:"Pasarela de pago", pts:13},
+  {id:"h5", nombre:"Notificación por WhatsApp de pedido", pts:8},
+  {id:"h6", nombre:"Panel de stock para el dueño", pts:5},
+  {id:"h7", nombre:"Historial de pedidos del cliente", pts:3},
+  {id:"h8", nombre:"Buscador de productos", pts:3}
+];
+const CAPACIDAD_SPRINT = 20;
+
+const EVENTOS_M3 = [
+  {
+    dia:1, texto:"Un cliente reporta un bug urgente en producción: el carrito duplica productos al agregar dos veces el mismo ítem.",
+    opciones:[
+      {texto:"Meter el arreglo en este sprint, aunque implique sacar algo", efecto:{capacidadExtra:-3, nota:"Sumaste el bug al sprint. Perdés 3 puntos de capacidad para lo planificado."}},
+      {texto:"Anotarlo en el backlog para el próximo sprint", efecto:{capacidadExtra:0, nota:"Lo dejaste para después. El cliente sigue viendo el bug hasta el próximo sprint."}}
+    ]
+  },
+  {
+    dia:2, texto:"El Product Owner pide agregar 'solo un campito más' al formulario de alta de productos, ya arrancado.",
+    opciones:[
+      {texto:"Aceptar el cambio de alcance sobre la marcha", efecto:{capacidadExtra:-2, nota:"El 'campito' salió más caro de lo esperado: -2 puntos de capacidad."}},
+      {texto:"Anotarlo y negociar que entre en el próximo sprint", efecto:{capacidadExtra:0, nota:"Protegiste el alcance del sprint actual, negociando con el Product Owner."}}
+    ]
+  },
+  {
+    dia:3, texto:"Una persona del equipo se enferma y va a estar ausente el resto de la semana.",
+    opciones:[
+      {texto:"Redistribuir sus tareas entre el resto del equipo", efecto:{capacidadExtra:-2, nota:"El equipo absorbe la tarea, pero rinde algo menos: -2 puntos."}},
+      {texto:"Sacar del sprint las historias que dependían de esa persona", efecto:{capacidadExtra:-1, nota:"Se reduce el alcance del sprint en 1 punto, pero el resto avanza sin sobrecarga."}}
+    ]
+  },
+  {
+    dia:4, texto:"En la revisión a mitad de sprint, el equipo descubre que la 'pasarela de pago' es más compleja de lo estimado.",
+    opciones:[
+      {texto:"Re-estimarla ahora y avisar que puede no llegar completa", efecto:{capacidadExtra:-2, nota:"Ajuste realista, aunque implica -2 puntos de margen para el resto."}},
+      {texto:"Seguir como si nada y esperar a ver qué pasa", efecto:{capacidadExtra:-4, nota:"El problema explota cerca del cierre: -4 puntos de capacidad perdidos por no reaccionar a tiempo."}}
+    ]
+  }
+];
+
+let m3 = {
+  fase:"planificacion",
+  seleccion:new Set(),
+  eventoIndex:0,
+  capacidadUsadaExtra:0,
+  log:[]
+};
+
+function resetM3(){
+  m3 = {fase:"planificacion", seleccion:new Set(), eventoIndex:0, capacidadUsadaExtra:0, log:[]};
+}
+
+function totalPuntosSeleccion(){
+  return BACKLOG_M3.filter(h=>m3.seleccion.has(h.id)).reduce((s,h)=>s+h.pts,0);
+}
+
+function renderModulo3(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(m3.fase==="planificacion"){
+    const total = totalPuntosSeleccion();
+    const pct = Math.min(100, Math.round((total/CAPACIDAD_SPRINT)*100));
+    sheet.innerHTML = `
+      <span class="eyebrow">Módulo 3 · Sprint Planning</span>
+      <h2>Armá el sprint de 2 semanas</h2>
+      <p class="lead">Capacidad estimada del equipo: <strong>${CAPACIDAD_SPRINT} puntos</strong>. Elegí qué historias entran en el sprint.</p>
+      <div id="backlog-list"></div>
+      <div class="capacidad-bar"><div class="capacidad-fill ${total>CAPACIDAD_SPRINT?'over':''}" style="width:${pct}%"></div></div>
+      <p class="mono" style="font-size:.8rem;">Comprometido: ${total} / ${CAPACIDAD_SPRINT} pts ${total>CAPACIDAD_SPRINT ? '⚠️ sobrepasado' : ''}</p>
+      <button class="primary" id="iniciar-sprint" ${total===0?'disabled':''}>Iniciar sprint</button>
+    `;
+    main.appendChild(sheet);
+    const list = sheet.querySelector("#backlog-list");
+    BACKLOG_M3.forEach(h=>{
+      const row = document.createElement("label");
+      row.className = "backlog-item";
+      row.innerHTML = `<input type="checkbox" ${m3.seleccion.has(h.id)?'checked':''}> ${h.nombre} <span class="pts">${h.pts} pts</span>`;
+      row.querySelector("input").addEventListener("change", (e)=>{
+        if(e.target.checked) m3.seleccion.add(h.id); else m3.seleccion.delete(h.id);
+        render();
+      });
+      list.appendChild(row);
+    });
+    sheet.querySelector("#iniciar-sprint").addEventListener("click", ()=>{
+      m3.fase = "evento";
+      m3.eventoIndex = 0;
+      render();
+    });
+    return;
+  }
+
+  if(m3.fase==="evento"){
+    if(m3.eventoIndex >= EVENTOS_M3.length){
+      m3.fase = "resultado";
+      render();
+      return;
+    }
+    const ev = EVENTOS_M3[m3.eventoIndex];
+    sheet.innerHTML = `
+      <span class="eyebrow">Sprint en curso</span>
+      <div class="evento-card">
+        <span class="dia">Día ${ev.dia} del sprint</span>
+        <p style="margin:6px 0 0 0;">${ev.texto}</p>
+      </div>
+      <div class="opciones" id="opciones-evento"></div>
+    `;
+    main.appendChild(sheet);
+    const cont = sheet.querySelector("#opciones-evento");
+    ev.opciones.forEach(op=>{
+      const b = document.createElement("button");
+      b.className = "opcion";
+      b.textContent = op.texto;
+      b.addEventListener("click", ()=>{
+        m3.capacidadUsadaExtra += op.efecto.capacidadExtra;
+        m3.log.push(op.efecto.nota);
+        m3.eventoIndex++;
+        render();
+      });
+      cont.appendChild(b);
+    });
+    return;
+  }
+
+  if(m3.fase==="resultado"){
+    sheet.innerHTML = renderResultadoM3();
+    main.appendChild(sheet);
+    const btn = sheet.querySelector("#reintentar-m3");
+    if(btn) btn.addEventListener("click", ()=>{ resetM3(); render(); });
+  }
+}
+
+function renderResultadoM3(){
+  const comprometido = totalPuntosSeleccion();
+  const capacidadReal = CAPACIDAD_SPRINT + m3.capacidadUsadaExtra;
+  const cumplido = capacidadReal >= comprometido;
+  const pctCumplimiento = comprometido>0 ? Math.min(100, Math.round((capacidadReal/comprometido)*100)) : 100;
+
+  const logHtml = m3.log.map(n=>`<li style="margin-bottom:6px;">${n}</li>`).join("");
+
+  let comentario;
+  if(cumplido && (comprometido <= CAPACIDAD_SPRINT)) {
+    comentario = "El equipo cerró el sprint con margen. Planificaste sin sobrecargar la capacidad, y eso dejó aire para absorber imprevistos sin comprometer el objetivo.";
+  } else if(cumplido) {
+    comentario = "El sprint se cumplió a pesar de haber comprometido más de la capacidad inicial. Tuviste suerte con cómo resolviste los imprevistos, pero es un patrón riesgoso a repetir sprint tras sprint.";
+  } else {
+    comentario = "El sprint no se pudo cumplir al 100%. Entre lo comprometido de más y los imprevistos, la capacidad real del equipo no alcanzó. Vale la pena revisar si se sobreestimó la capacidad o si se comprometieron demasiadas historias de entrada.";
+  }
+
+  state.mod3.completado = true;
+  state.mod3.score = pctCumplimiento;
+  saveState();
+
+  return `
+    <span class="eyebrow">Sprint Review</span>
+    <h2>Cumplimiento del sprint: ${pctCumplimiento}%</h2>
+    <div class="sello">${cumplido ? "Sprint Cerrado" : "Objetivo No Alcanzado"}</div>
+    <p class="mono" style="font-size:.8rem;">Comprometido: ${comprometido} pts · Capacidad real tras imprevistos: ${capacidadReal} pts</p>
+    <p class="lead">${comentario}</p>
+    <p><strong>Bitácora del sprint:</strong></p>
+    <ul class="req-list">${logHtml}</ul>
+    <button class="primary" id="reintentar-m3">Repetir sprint</button>
+  `;
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+render();
+
+/* Service worker (offline) */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("service-worker.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
