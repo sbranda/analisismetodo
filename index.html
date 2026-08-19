@@ -220,6 +220,38 @@
   .req-list li.ok::before{content:"✓"; color:var(--teal); font-weight:bold;}
   .req-list li.falta::before{content:"—"; color:var(--stamp); font-weight:bold;}
 
+  /* Selector de personas (Módulo 1) */
+  .personas-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    margin-top:14px;
+  }
+  @media (min-width:640px){
+    .personas-grid{grid-template-columns:1fr 1fr;}
+  }
+  .persona-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+  }
+  .persona-card .primary{width:100%; text-align:center;}
+  .dif-tag{
+    display:inline-block;
+    font-family:'Courier New',monospace;
+    font-size:.65rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:2px 8px;
+    border-radius:10px;
+    color:#fff;
+  }
+  .dif-ideal{background:var(--teal);}
+  .dif-evasivo{background:var(--mustard);}
+  .dif-contradictoria{background:var(--stamp);}
+  .dif-apurado{background:var(--navy-soft);}
+
   /* stamp visual */
   .sello{
     display:inline-block;
@@ -363,7 +395,7 @@ function loadState(){
     if(raw) return JSON.parse(raw);
   }catch(e){}
   return {
-    mod1:{completado:false, score:0},
+    mod1:{completado:false, personas:{}},
     mod2:{completado:false, score:0},
     mod3:{completado:false, score:0}
   };
@@ -372,9 +404,11 @@ function saveState(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 let state = loadState();
+if(!state.mod1.personas) state.mod1.personas = {};
 
 function refreshStamps(){
-  document.getElementById("stamp1").textContent = state.mod1.completado ? "✓" : "";
+  const hechosM1 = Object.values(state.mod1.personas || {}).filter(p=>p.completado).length;
+  document.getElementById("stamp1").textContent = hechosM1>0 ? `${hechosM1}/4` : "";
   document.getElementById("stamp2").textContent = state.mod2.completado ? "✓" : "";
   document.getElementById("stamp3").textContent = state.mod3.completado ? "✓" : "";
 }
@@ -422,69 +456,231 @@ const REQUISITOS_M1 = [
   {id:"usuarios", label:"Quién más va a usar el sistema"}
 ];
 
-const PREGUNTAS_M1 = [
-  {id:"p1", texto:"¿Qué tipo de productos vende en el almacén?", tipo:"buena", reveals:"rubros",
-   respuesta:"De todo un poco: almacén, verdulería y una heladera con fiambres y lácteos. Lo que más rota es la verdulería."},
-  {id:"p2", texto:"Hoy, ¿cómo anota lo que tiene en stock?", tipo:"buena", reveals:"stock",
-   respuesta:"En un cuaderno de tapa dura, uno por mes. Cuando se termina la mercadería, tacho la línea. A veces me olvido de tachar."},
-  {id:"p3", texto:"¿Cómo le hacen los pedidos los clientes?", tipo:"buena", reveals:"pedidos",
-   respuesta:"La mayoría viene al mostrador, pero cada vez más me escriben por WhatsApp y algunos me llaman por teléfono."},
-  {id:"p4", texto:"¿Le fía a los clientes? ¿Cómo lleva esa cuenta?", tipo:"buena", reveals:"fiado",
-   respuesta:"Sí, a los vecinos de toda la vida les anoto en una libreta aparte. Es lo que más dolores de cabeza me da, se me pierden hojas."},
-  {id:"p5", texto:"¿Tiene un solo local o piensa abrir otro?", tipo:"buena", reveals:"locales",
-   respuesta:"Por ahora uno solo, pero mi hija quiere que abramos una sucursal en el barrio de al lado el año que viene."},
-  {id:"p6", texto:"¿En qué le gustaría usar el sistema: celular, computadora, tablet?", tipo:"buena", reveals:"dispositivo",
-   respuesta:"Yo solo sé usar el celular, la verdad. Una compu tengo pero la usa mi hija para la facultad."},
-  {id:"p7", texto:"¿Cuánto tiempo o presupuesto tiene pensado para este proyecto?", tipo:"buena", reveals:"presupuesto",
-   respuesta:"Quiero algo para antes de las fiestas, así que tengo unos dos meses. Plata no sobra, así que cuanto más simple mejor."},
-  {id:"p8", texto:"Además de usted, ¿quién más atendería o usaría el sistema?", tipo:"buena", reveals:"usuarios",
-   respuesta:"Mi hija a la tarde, y a veces un empleado los sábados que está solo de paso."},
-  {id:"p9", texto:"¿Le gustan las plantas?", tipo:"vaga", reveals:null,
-   respuesta:"Eh... sí, tengo unas macetas atrás del mostrador. ¿Eso qué tiene que ver con el sistema?"},
-  {id:"p10", texto:"Seguramente quiere algo con inteligencia artificial y todo automático, ¿no?", tipo:"cerrada", reveals:null,
-   respuesta:"No sé bien qué es eso... usted es el que sabe, dígame usted qué necesito."},
-  {id:"p11", texto:"¿Prefiere los colores celeste o verde para la pantalla?", tipo:"vaga", reveals:null,
-   respuesta:"Y... no sé, cualquiera está bien, lo importante es que me ayude con el negocio."},
-  {id:"p12", texto:"Un sistema con cuenta corriente automática le va a servir mucho, ¿verdad?", tipo:"cerrada", reveals:"fiado",
-   respuesta:"Sí, seguro... aunque no sé bien qué es 'cuenta corriente automática'. Yo le decía lo de la libreta de fiado."},
-  {id:"p13", texto:"¿Alguna vez probó algún programa o app para el negocio?", tipo:"buena", reveals:null,
-   respuesta:"Probé una app gratis pero era en inglés y no entendía nada, la borré a la semana."},
-  {id:"p14", texto:"¿Qué es lo que más bronca le da del día a día en el almacén?", tipo:"buena", reveals:null,
-   respuesta:"Cuando se me mezclan los pedidos por WhatsApp con los del mostrador y le doy a alguien lo que era de otro cliente."}
+const PERSONAS_M1 = [
+  {
+    id:"rosa", nombre:"Doña Rosa", rubro:"Almacén de barrio", dificultad:"Ideal",
+    colorClase:"dif-ideal",
+    descripcion:"Responde con claridad casi todo lo que le preguntás. Sirve para practicar la base: elegir preguntas que aporten, sin desviarte.",
+    saludo:"Hola, mijo/a. Me dijeron que usted me puede armar un sistema para el negocio. Pregunte lo que necesite, yo le cuento.",
+    maxTurnos:8,
+    contradicciones:[],
+    tip:"Con clientes claros, el error más común es perder turnos en preguntas de relleno en vez de aprovechar que el cliente coopera.",
+    preguntas:[
+      {id:"p1", texto:"¿Qué tipo de productos vende en el almacén?", tipo:"buena", reveals:"rubros",
+       respuesta:"De todo un poco: almacén, verdulería y una heladera con fiambres y lácteos. Lo que más rota es la verdulería."},
+      {id:"p2", texto:"Hoy, ¿cómo anota lo que tiene en stock?", tipo:"buena", reveals:"stock",
+       respuesta:"En un cuaderno de tapa dura, uno por mes. Cuando se termina la mercadería, tacho la línea. A veces me olvido de tachar."},
+      {id:"p3", texto:"¿Cómo le hacen los pedidos los clientes?", tipo:"buena", reveals:"pedidos",
+       respuesta:"La mayoría viene al mostrador, pero cada vez más me escriben por WhatsApp y algunos me llaman por teléfono."},
+      {id:"p4", texto:"¿Le fía a los clientes? ¿Cómo lleva esa cuenta?", tipo:"buena", reveals:"fiado",
+       respuesta:"Sí, a los vecinos de toda la vida les anoto en una libreta aparte. Es lo que más dolores de cabeza me da, se me pierden hojas."},
+      {id:"p5", texto:"¿Tiene un solo local o piensa abrir otro?", tipo:"buena", reveals:"locales",
+       respuesta:"Por ahora uno solo, pero mi hija quiere que abramos una sucursal en el barrio de al lado el año que viene."},
+      {id:"p6", texto:"¿En qué le gustaría usar el sistema: celular, computadora, tablet?", tipo:"buena", reveals:"dispositivo",
+       respuesta:"Yo solo sé usar el celular, la verdad. Una compu tengo pero la usa mi hija para la facultad."},
+      {id:"p7", texto:"¿Cuánto tiempo o presupuesto tiene pensado para este proyecto?", tipo:"buena", reveals:"presupuesto",
+       respuesta:"Quiero algo para antes de las fiestas, así que tengo unos dos meses. Plata no sobra, así que cuanto más simple mejor."},
+      {id:"p8", texto:"Además de usted, ¿quién más atendería o usaría el sistema?", tipo:"buena", reveals:"usuarios",
+       respuesta:"Mi hija a la tarde, y a veces un empleado los sábados que está solo de paso."},
+      {id:"p9", texto:"¿Le gustan las plantas?", tipo:"vaga", reveals:null,
+       respuesta:"Eh... sí, tengo unas macetas atrás del mostrador. ¿Eso qué tiene que ver con el sistema?"},
+      {id:"p10", texto:"Seguramente quiere algo con inteligencia artificial y todo automático, ¿no?", tipo:"cerrada", reveals:null,
+       respuesta:"No sé bien qué es eso... usted es el que sabe, dígame usted qué necesito."},
+      {id:"p11", texto:"¿Prefiere los colores celeste o verde para la pantalla?", tipo:"vaga", reveals:null,
+       respuesta:"Y... no sé, cualquiera está bien, lo importante es que me ayude con el negocio."},
+      {id:"p12", texto:"Un sistema con cuenta corriente automática le va a servir mucho, ¿verdad?", tipo:"cerrada", reveals:"fiado",
+       respuesta:"Sí, seguro... aunque no sé bien qué es 'cuenta corriente automática'. Yo le decía lo de la libreta de fiado."},
+      {id:"p13", texto:"¿Alguna vez probó algún programa o app para el negocio?", tipo:"buena", reveals:null,
+       respuesta:"Probé una app gratis pero era en inglés y no entendía nada, la borré a la semana."},
+      {id:"p14", texto:"¿Qué es lo que más bronca le da del día a día en el almacén?", tipo:"buena", reveals:null,
+       respuesta:"Cuando se me mezclan los pedidos por WhatsApp con los del mostrador y le doy a alguien lo que era de otro cliente."}
+    ]
+  },
+  {
+    id:"walter", nombre:"Don Walter", rubro:"Ferretería", dificultad:"Evasivo",
+    colorClase:"dif-evasivo",
+    descripcion:"Contesta con generalidades ('de todo un poco', 'más o menos') si la pregunta es abierta. Solo suelta datos concretos con preguntas puntuales, con ejemplos.",
+    saludo:"Ahá, sí, sí. Pregunte, pero vaya al grano que tengo un cliente en el mostrador esperando el vuelto.",
+    maxTurnos:8,
+    contradicciones:[],
+    tip:"Con clientes evasivos, las preguntas abiertas ('¿cómo anda con el stock?') rebotan. Pedí ejemplos concretos o cifras.",
+    preguntas:[
+      {id:"w1", texto:"¿Qué es lo que más vende?", tipo:"vaga", reveals:null,
+       respuesta:"Y, de todo... tornillos, pinturas, un poco de todo, ya sabe cómo es esto."},
+      {id:"w2", texto:"Deme tres ejemplos concretos de las categorías de productos que más rotan", tipo:"buena", reveals:"rubros",
+       respuesta:"Bueno... pinturas y accesorios, tornillería suelta, y herramientas eléctricas. Esas son las que más se venden."},
+      {id:"w3", texto:"¿Cómo anda con el stock?", tipo:"vaga", reveals:null,
+       respuesta:"Ahí vamos, más o menos controlado, como siempre."},
+      {id:"w4", texto:"¿En qué anota exactamente el stock: papel, Excel, alguna app?", tipo:"buena", reveals:"stock",
+       respuesta:"Tengo una libreta que uso desde hace diez años, la verdad. A veces se me traspapela."},
+      {id:"w5", texto:"¿Los pedidos cómo le entran?", tipo:"vaga", reveals:null,
+       respuesta:"Como siempre entraron, de la forma de siempre."},
+      {id:"w6", texto:"¿Le llegan pedidos por WhatsApp, teléfono, o solo vienen al mostrador?", tipo:"buena", reveals:"pedidos",
+       respuesta:"Casi todo mostrador, pero ahora unos clientes de obra me mandan la lista por WhatsApp."},
+      {id:"w7", texto:"¿Fía a los clientes?", tipo:"cerrada", reveals:null,
+       respuesta:"Y bueno, alguna vez, no siempre. Depende."},
+      {id:"w8", texto:"¿Cómo registra a quién le fía y cuánto le debe?", tipo:"buena", reveals:"fiado",
+       respuesta:"Tengo unos papelitos sueltos en la caja, la verdad no es lo más prolijo del mundo."},
+      {id:"w9", texto:"¿Tiene un solo local?", tipo:"buena", reveals:"locales",
+       respuesta:"Sí, uno solo, no doy más abasto con este."},
+      {id:"w10", texto:"¿Con qué dispositivo se manejaría mejor: celular o computadora?", tipo:"buena", reveals:"dispositivo",
+       respuesta:"Compu tengo en casa de mi sobrino, pero yo acá en el local solo uso el celular."},
+      {id:"w11", texto:"¿Tiene apuro con esto o tiempo hay?", tipo:"vaga", reveals:null,
+       respuesta:"Y bueno, cuanto antes mejor, como todo en la vida."},
+      {id:"w12", texto:"¿Para cuándo necesitaría tenerlo funcionando, más o menos?", tipo:"buena", reveals:"presupuesto",
+       respuesta:"Antes de que arranque la temporada de obras, en unos tres meses."},
+      {id:"w13", texto:"¿Alguien más lo ayuda en el local?", tipo:"buena", reveals:"usuarios",
+       respuesta:"Mi sobrino viene los fines de semana a darme una mano."},
+      {id:"w14", texto:"¿Le gusta el fútbol?", tipo:"vaga", reveals:null,
+       respuesta:"¿Y eso qué tiene que ver? ...River, si le interesa."}
+    ]
+  },
+  {
+    id:"marisa", nombre:"Marisa", rubro:"Verdulería con delivery", dificultad:"Contradictoria",
+    colorClase:"dif-contradictoria",
+    descripcion:"Se contradice sin darse cuenta en un par de temas. Hay que estar atento y, si algo no cierra, volver a preguntar.",
+    saludo:"Hola, sí, pase. Dígame, ¿qué necesita saber? Ojo que a veces me hago un lío contando las cosas.",
+    maxTurnos:8,
+    contradicciones:[["m4","m5"],["m7","m8"]],
+    tip:"Marisa se contradijo sobre el fiado y sobre qué dispositivo usa. Si elegiste ambas preguntas de cada tema, lo detectaste — en una entrevista real, ahí conviene repreguntar antes de cerrar el requisito.",
+    preguntas:[
+      {id:"m1", texto:"¿Qué vende en el local?", tipo:"buena", reveals:"rubros",
+       respuesta:"Fruta y verdura, y ahora sumé algunos productos de almacén también."},
+      {id:"m2", texto:"¿Cómo lleva el stock?", tipo:"buena", reveals:"stock",
+       respuesta:"Yo me manejo de memoria, la verdad, hace veinte años que estoy en esto."},
+      {id:"m3", texto:"¿Cómo le llegan los pedidos?", tipo:"buena", reveals:"pedidos",
+       respuesta:"Por Instagram me escriben bastante, y algunos clientes viejos me llaman por teléfono."},
+      {id:"m4", texto:"¿Le fía a alguien?", tipo:"buena", reveals:"fiado",
+       respuesta:"No, no fío a nadie, así no me quemo. Con la plata no se jode."},
+      {id:"m5", texto:"¿Alguna vez tuvo problemas por dejar a alguien a deber?", tipo:"buena", reveals:null,
+       respuesta:"Uy, sí, a dos vecinas de toda la vida les tengo anotado en un cuaderno lo que me deben, todavía no me pagaron."},
+      {id:"m6", texto:"¿Tiene un solo local?", tipo:"buena", reveals:"locales",
+       respuesta:"Uno solo, en la esquina de siempre."},
+      {id:"m7", texto:"¿En qué le gustaría usar el sistema, celular o compu?", tipo:"buena", reveals:"dispositivo",
+       respuesta:"Prefiero el celular, no me llevo bien con las computadoras."},
+      {id:"m8", texto:"¿Usa alguna aplicación en computadora hoy en día?", tipo:"buena", reveals:null,
+       respuesta:"Sí, tengo una planilla de Excel en la compu de mi marido donde anoto los gastos del mes."},
+      {id:"m9", texto:"¿Para cuándo lo necesitaría?", tipo:"buena", reveals:"presupuesto",
+       respuesta:"Antes de las fiestas de fin de año, si se puede."},
+      {id:"m10", texto:"¿Alguien más la ayuda en el local?", tipo:"buena", reveals:"usuarios",
+       respuesta:"Mi sobrina viene dos tardes a la semana."},
+      {id:"m11", texto:"¿Le gustan los gatos o los perros?", tipo:"vaga", reveals:null,
+       respuesta:"Perros, tengo dos en casa. ¿Para qué me pregunta eso?"},
+      {id:"m12", texto:"Seguro quiere un sistema con inteligencia artificial, ¿no?", tipo:"cerrada", reveals:null,
+       respuesta:"No tengo idea qué es eso, dígame usted."},
+      {id:"m13", texto:"¿Qué es lo que más la complica del día a día?", tipo:"buena", reveals:null,
+       respuesta:"Cuando se me mezclan los pedidos de Instagram con los del mostrador."},
+      {id:"m14", texto:"¿Prefiere el sistema en español o en inglés?", tipo:"vaga", reveals:null,
+       respuesta:"Y en español, obvio, no entiendo nada de inglés."}
+    ]
+  },
+  {
+    id:"nestor", nombre:"Néstor", rubro:"Kiosco", dificultad:"Apurado",
+    colorClase:"dif-apurado",
+    descripcion:"Solo tiene paciencia para 5 preguntas y contesta cortito. Obliga a priorizar: no vas a poder relevar todo.",
+    saludo:"Dale, pregunte rápido que tengo cola en la caja. Cinco preguntas y listo, no tengo más tiempo hoy.",
+    maxTurnos:5,
+    contradicciones:[],
+    tip:"Con clientes apurados no alcanza el tiempo para todo. La habilidad clave es priorizar qué preguntas dan más información por turno gastado.",
+    preguntas:[
+      {id:"n1", texto:"Cuénteme todo sobre su negocio, así me doy una idea general", tipo:"vaga", reveals:null,
+       respuesta:"Uh, no tengo tiempo para historias largas, pregúnteme cosas puntuales."},
+      {id:"n2", texto:"¿Qué vende?", tipo:"buena", reveals:"rubros",
+       respuesta:"Kiosco: golosinas, cigarrillos, bebidas, poco más."},
+      {id:"n3", texto:"¿Cómo maneja el stock?", tipo:"buena", reveals:"stock",
+       respuesta:"De memoria, y cuando se termina algo lo anoto en el celular, en notas."},
+      {id:"n4", texto:"¿Le hacen pedidos o todo es mostrador?", tipo:"buena", reveals:"pedidos",
+       respuesta:"Acá no hay pedidos, todo es mostrador, vienen y compran."},
+      {id:"n5", texto:"¿Fía a los clientes?", tipo:"buena", reveals:"fiado",
+       respuesta:"Ni loco, todo al contado."},
+      {id:"n6", texto:"¿Un local o más de uno?", tipo:"buena", reveals:"locales",
+       respuesta:"Uno solo, y no doy abasto con ese."},
+      {id:"n7", texto:"¿Con qué dispositivo se manejaría?", tipo:"buena", reveals:"dispositivo",
+       respuesta:"Celular, no tengo otra cosa."},
+      {id:"n8", texto:"¿Para cuándo lo necesitaría?", tipo:"buena", reveals:"presupuesto",
+       respuesta:"Ya. Para ayer, si pudiera."},
+      {id:"n9", texto:"¿Alguien más atiende?", tipo:"buena", reveals:"usuarios",
+       respuesta:"Mi hijo, a la noche."},
+      {id:"n10", texto:"Cuénteme con calma cómo es un día típico suyo en el kiosco", tipo:"vaga", reveals:null,
+       respuesta:"No tengo tiempo para esto, vaya al grano, por favor."},
+      {id:"n11", texto:"¿Le interesa el marketing digital para el kiosco?", tipo:"cerrada", reveals:null,
+       respuesta:"No sé qué es eso, y no tengo tiempo de averiguarlo ahora."},
+      {id:"n12", texto:"¿Cómo se siente con la tecnología en general?", tipo:"vaga", reveals:null,
+       respuesta:"Bien, pero apure que tengo clientes esperando."},
+      {id:"n13", texto:"¿Qué es lo que más le molesta del día a día?", tipo:"buena", reveals:null,
+       respuesta:"Que se me arma cola y no doy abasto solo."},
+      {id:"n14", texto:"¿Prefiere colores fríos o cálidos para la pantalla?", tipo:"vaga", reveals:null,
+       respuesta:"Cualquiera, no tengo tiempo para eso, decida usted."}
+    ]
+  }
 ];
 
-const MAX_TURNOS_M1 = 8;
-let m1 = {turno:0, preguntasHechas:[], requisitosObtenidos:new Set(), vagasElegidas:0, terminado:false};
+let m1 = {personaId:null, turno:0, preguntasHechas:[], requisitosObtenidos:new Set(), vagasElegidas:0, terminado:false};
 
 function resetM1(){
-  m1 = {turno:0, preguntasHechas:[], requisitosObtenidos:new Set(), vagasElegidas:0, terminado:false};
+  m1 = {personaId:null, turno:0, preguntasHechas:[], requisitosObtenidos:new Set(), vagasElegidas:0, terminado:false};
+}
+
+function personaActualM1(){
+  return PERSONAS_M1.find(p=>p.id===m1.personaId);
+}
+
+function progresoM1(){
+  const personas = state.mod1.personas || {};
+  return PERSONAS_M1.filter(p => personas[p.id] && personas[p.id].completado).length;
 }
 
 function renderModulo1(){
   const sheet = document.createElement("div");
   sheet.className = "sheet";
 
-  if(m1.terminado){
-    sheet.innerHTML = renderResultadoM1();
+  if(!m1.personaId){
+    sheet.innerHTML = renderSeleccionPersonaM1();
     main.appendChild(sheet);
-    const btnReintentar = sheet.querySelector("#reintentar-m1");
-    if(btnReintentar) btnReintentar.addEventListener("click", ()=>{ resetM1(); render(); });
+    sheet.querySelectorAll(".persona-card").forEach(card=>{
+      card.querySelector(".primary").addEventListener("click", ()=>{
+        m1.personaId = card.dataset.id;
+        m1.turno = 0;
+        m1.preguntasHechas = [];
+        m1.requisitosObtenidos = new Set();
+        m1.vagasElegidas = 0;
+        m1.terminado = false;
+        render();
+      });
+    });
     return;
   }
 
-  const disponibles = PREGUNTAS_M1.filter(p => !m1.preguntasHechas.includes(p.id));
-  const restantes = MAX_TURNOS_M1 - m1.turno;
+  const persona = personaActualM1();
+
+  if(m1.terminado){
+    sheet.innerHTML = renderResultadoM1(persona);
+    main.appendChild(sheet);
+    const btnReintentar = sheet.querySelector("#reintentar-m1");
+    if(btnReintentar) btnReintentar.addEventListener("click", ()=>{
+      const id = m1.personaId;
+      resetM1();
+      m1.personaId = id;
+      render();
+    });
+    const btnCambiar = sheet.querySelector("#cambiar-cliente-m1");
+    if(btnCambiar) btnCambiar.addEventListener("click", ()=>{ resetM1(); render(); });
+    return;
+  }
+
+  const disponibles = persona.preguntas.filter(p => !m1.preguntasHechas.includes(p.id));
+  const restantes = persona.maxTurnos - m1.turno;
 
   sheet.innerHTML = `
-    <span class="eyebrow">Módulo 1 · Relevamiento</span>
-    <h2>Entrevista: Almacén "Doña Rosa"</h2>
-    <p class="lead">Tenés <strong>${restantes}</strong> preguntas para relevar los requisitos del sistema que necesita Doña Rosa para su almacén. Elegí bien — no todas las preguntas aportan lo mismo.</p>
-    <div class="cliente-msg"><span class="quien">Doña Rosa, dueña del almacén</span>
-      ${m1.turno===0 ? "Hola, mijo/a. Me dijeron que usted me puede armar un sistema para el negocio. Pregunte lo que necesite, yo le cuento." : ultimaRespuestaM1()}
+    <span class="eyebrow">Módulo 1 · Relevamiento · <span class="dif-tag ${persona.colorClase}">${persona.dificultad}</span></span>
+    <h2>Entrevista: ${persona.rubro} de ${persona.nombre}</h2>
+    <p class="lead">Tenés <strong>${restantes}</strong> preguntas para relevar los requisitos del sistema. Elegí bien — no todas las preguntas aportan lo mismo.</p>
+    <div class="cliente-msg"><span class="quien">${persona.nombre}, ${persona.rubro.toLowerCase()}</span>
+      ${m1.turno===0 ? persona.saludo : ultimaRespuestaM1()}
     </div>
     <div class="opciones" id="opciones-m1"></div>
     <div class="estado-bar">
-      <span>Preguntas usadas: ${m1.turno} / ${MAX_TURNOS_M1}</span>
+      <span>Preguntas usadas: ${m1.turno} / ${persona.maxTurnos}</span>
       <span>Requisitos relevados: ${m1.requisitosObtenidos.size} / ${REQUISITOS_M1.length}</span>
     </div>
     ${m1.turno>0 ? '<button class="secondary" id="terminar-m1">Terminar entrevista ahora</button>' : ''}
@@ -512,6 +708,31 @@ function renderModulo1(){
   }
 }
 
+function renderSeleccionPersonaM1(){
+  const progreso = progresoM1();
+  const cards = PERSONAS_M1.map(p=>{
+    const hecho = state.mod1.personas && state.mod1.personas[p.id] && state.mod1.personas[p.id].completado;
+    const mejorScore = hecho ? state.mod1.personas[p.id].score : null;
+    return `
+      <div class="persona-card" data-id="${p.id}">
+        <div class="dif-tag ${p.colorClase}">${p.dificultad}</div>
+        <h3 style="margin:6px 0 2px 0;">${p.nombre}</h3>
+        <p class="mono" style="font-size:.72rem; color:var(--ink-soft); margin:0 0 8px 0;">${p.rubro}</p>
+        <p style="font-size:.85rem;">${p.descripcion}</p>
+        ${hecho ? `<p class="mono" style="font-size:.72rem; color:var(--teal);">Mejor cobertura: ${mejorScore}%</p>` : ''}
+        <button class="primary">${hecho ? 'Repetir entrevista' : 'Comenzar entrevista'}</button>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <span class="eyebrow">Módulo 1 · Relevamiento</span>
+    <h2>Elegí a quién vas a entrevistar</h2>
+    <p class="lead">No todos los clientes son iguales. Practicá relevar requisitos con distintas personalidades — ya llevás ${progreso} de ${PERSONAS_M1.length} entrevistas completas.</p>
+    <div class="personas-grid">${cards}</div>
+  `;
+}
+
 let ultimaPreguntaM1 = null;
 function ultimaRespuestaM1(){
   if(!ultimaPreguntaM1) return "";
@@ -528,13 +749,19 @@ function elegirPreguntaM1(p){
 }
 
 function guardarResultadoM1(){
+  const persona = personaActualM1();
   const score = Math.round((m1.requisitosObtenidos.size / REQUISITOS_M1.length) * 100);
-  state.mod1.completado = true;
-  state.mod1.score = score;
+  if(!state.mod1.personas) state.mod1.personas = {};
+  const previo = state.mod1.personas[persona.id];
+  state.mod1.personas[persona.id] = {
+    completado:true,
+    score: previo ? Math.max(previo.score, score) : score
+  };
+  state.mod1.completado = progresoM1() === PERSONAS_M1.length;
   saveState();
 }
 
-function renderResultadoM1(){
+function renderResultadoM1(persona){
   const score = Math.round((m1.requisitosObtenidos.size / REQUISITOS_M1.length) * 100);
   const listaReq = REQUISITOS_M1.map(r=>{
     const ok = m1.requisitosObtenidos.has(r.id);
@@ -544,21 +771,37 @@ function renderResultadoM1(){
   let comentario;
   if(score>=87) comentario = "Relevamiento sólido. Cubriste casi todos los puntos clave antes de ponerte a diseñar nada — así se hace.";
   else if(score>=50) comentario = "Relevamiento parcial. Conseguiste información útil, pero quedaron huecos que un desarrollador tendría que completar 'inventando' — ahí es donde nacen los malentendidos.";
-  else comentario = "Relevamiento insuficiente. Se gastaron turnos en preguntas vagas o cerradas que no aportaron datos nuevos. Con esta información todavía no se puede empezar a diseñar el sistema.";
+  else comentario = "Relevamiento insuficiente. Se gastaron turnos en preguntas vagas, cerradas o mal orientadas para este tipo de cliente. Con esta información todavía no se puede empezar a diseñar el sistema.";
 
   const notaVagas = m1.vagasElegidas>0
-    ? `<p class="lead">Elegiste <strong>${m1.vagasElegidas}</strong> pregunta(s) vaga(s) o cerrada(s) (del tipo "seguro quiere algo con IA, ¿no?"). Esas preguntas plantan una idea en la cabeza del cliente en vez de escuchar lo que realmente necesita.</p>`
-    : `<p class="lead">No usaste ninguna pregunta cerrada o vaga — evitaste plantarle ideas al cliente antes de escucharlo. Buena técnica.</p>`;
+    ? `<p class="lead">Elegiste <strong>${m1.vagasElegidas}</strong> pregunta(s) vaga(s) o cerrada(s). Esas preguntas plantan una idea en la cabeza del cliente o rebotan sin aportar datos, según el tipo de cliente.</p>`
+    : `<p class="lead">No usaste ninguna pregunta vaga o cerrada. Buena técnica.</p>`;
+
+  let notaContradiccion = "";
+  if(persona.contradicciones.length>0){
+    const detectadas = persona.contradicciones.filter(par => par.every(id=>m1.preguntasHechas.includes(id))).length;
+    if(detectadas>0){
+      notaContradiccion = `<p class="lead"><strong>Detectaste ${detectadas} contradicción(es):</strong> ${persona.tip}</p>`;
+    } else {
+      notaContradiccion = `<p class="lead">Este cliente se contradijo en algún momento y no llegaste a cruzar las preguntas que lo mostraban. En una entrevista real, cuando algo no cierra con lo que se dijo antes, vale la pena repreguntar.</p>`;
+    }
+  } else if(persona.dificultad === "Apurado"){
+    notaContradiccion = `<p class="lead">${persona.tip}</p>`;
+  } else if(persona.dificultad === "Evasivo"){
+    notaContradiccion = `<p class="lead">${persona.tip}</p>`;
+  }
 
   return `
-    <span class="eyebrow">Resultado del relevamiento</span>
+    <span class="eyebrow">Resultado del relevamiento · <span class="dif-tag ${persona.colorClase}">${persona.dificultad}</span></span>
     <h2>Legajo cerrado: ${score}% de cobertura</h2>
     <div class="sello">${score>=70 ? "Expediente Completo" : "Requiere Ampliación"}</div>
     <p>${comentario}</p>
     ${notaVagas}
+    ${notaContradiccion}
     <p class="lead" style="margin-top:14px;">Requisitos relevados durante la entrevista:</p>
     <ul class="req-list">${listaReq}</ul>
-    <button class="primary" id="reintentar-m1">Repetir entrevista</button>
+    <button class="primary" id="reintentar-m1">Repetir con ${persona.nombre}</button>
+    <button class="secondary" id="cambiar-cliente-m1">Elegir otro cliente</button>
   `;
 }
 
