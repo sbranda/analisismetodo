@@ -1109,16 +1109,56 @@ const EVENTOS_M3 = [
   }
 ];
 
+const DAILIES_M3 = [
+  {
+    dia:1, texto:"Es la primera daily del sprint. Un desarrollador arranca contando con mucho detalle técnico cómo piensa resolver un bug, y la reunión ya lleva 10 minutos sobre ese único tema.",
+    opciones:[
+      {texto:"Cortar ahí y proponer seguir esa charla técnica después de la daily, aparte", efecto:{moral:2, capacidadExtra:0, nota:"Facilitaste una daily corta y enfocada. El equipo valora que no se alargue innecesariamente."}},
+      {texto:"Dejar que siga, total es información útil para todos", efecto:{moral:-2, capacidadExtra:-1, nota:"La daily se estiró a 25 minutos. Todo el equipo perdió foco y tiempo — sale caro multiplicado por cada persona presente."}}
+    ]
+  },
+  {
+    dia:2, texto:"En la daily, alguien dice 'todo bien, sin bloqueos', pero hace dos días que no mueve su tarea en el tablero.",
+    opciones:[
+      {texto:"Preguntarle aparte, después de la daily, cómo viene realmente", efecto:{moral:1, capacidadExtra:0, nota:"En una charla uno a uno apareció un bloqueo que no quería decir frente a todo el equipo. Se resolvió rápido."}},
+      {texto:"Confiar en lo que dijo y seguir con la reunión", efecto:{moral:-1, capacidadExtra:-1, nota:"El bloqueo siguió sin resolverse dos días más, atrasando esa historia."}}
+    ]
+  },
+  {
+    dia:3, texto:"Alguien del equipo está de mal humor y usa la daily para criticar en público el trabajo de un compañero.",
+    opciones:[
+      {texto:"Frenar la discusión ahí mismo y proponer hablarlo en privado", efecto:{moral:2, capacidadExtra:0, nota:"Evitaste que la daily se convierta en una discusión pública; el conflicto se conversó aparte."}},
+      {texto:"Dejar que se resuelva solo, no es asunto tuyo", efecto:{moral:-3, capacidadExtra:0, nota:"El clima del equipo se resintió: dos personas quedaron más cortantes en las dailies siguientes."}}
+    ]
+  },
+  {
+    dia:4, texto:"Falta a la daily una persona clave del equipo, sin avisar.",
+    opciones:[
+      {texto:"Escribirle después para ponerla al día y pasarle el resumen", efecto:{moral:1, capacidadExtra:0, nota:"La persona se puso al día rápido, sin generar más fricción."}},
+      {texto:"No hacer nada, ya se va a enterar", efecto:{moral:-1, capacidadExtra:-1, nota:"Esa persona quedó desalineada un día entero, generando un pequeño retrabajo."}}
+    ]
+  }
+];
+
+const SECUENCIA_M3 = [];
+[1,2,3,4].forEach(dia=>{
+  const daily = DAILIES_M3.find(d=>d.dia===dia);
+  const evento = EVENTOS_M3.find(e=>e.dia===dia);
+  if(daily) SECUENCIA_M3.push({tipo:"daily", data:daily});
+  if(evento) SECUENCIA_M3.push({tipo:"evento", data:evento});
+});
+
 let m3 = {
   fase:"planificacion",
   seleccion:new Set(),
-  eventoIndex:0,
+  pasoIndex:0,
   capacidadUsadaExtra:0,
+  moral:70,
   log:[]
 };
 
 function resetM3(){
-  m3 = {fase:"planificacion", seleccion:new Set(), eventoIndex:0, capacidadUsadaExtra:0, log:[]};
+  m3 = {fase:"planificacion", seleccion:new Set(), pasoIndex:0, capacidadUsadaExtra:0, moral:70, log:[]};
 }
 
 function totalPuntosSeleccion(){
@@ -1135,7 +1175,7 @@ function renderModulo3(){
     sheet.innerHTML = `
       <span class="eyebrow">Módulo 3 · Sprint Planning</span>
       <h2>Armá el sprint de 2 semanas</h2>
-      <p class="lead">Capacidad estimada del equipo: <strong>${CAPACIDAD_SPRINT} puntos</strong>. Elegí qué historias entran en el sprint.</p>
+      <p class="lead">Capacidad estimada del equipo: <strong>${CAPACIDAD_SPRINT} puntos</strong>. Elegí qué historias entran en el sprint. Una vez arrancado, vas a tomar decisiones como <strong>Scrum Master</strong>: facilitar las dailies del equipo y gestionar los imprevistos que aparezcan.</p>
       <div id="backlog-list"></div>
       <div class="capacidad-bar"><div class="capacidad-fill ${total>CAPACIDAD_SPRINT?'over':''}" style="width:${pct}%"></div></div>
       <p class="mono" style="font-size:.8rem;">Comprometido: ${total} / ${CAPACIDAD_SPRINT} pts ${total>CAPACIDAD_SPRINT ? '⚠️ sobrepasado' : ''}</p>
@@ -1154,38 +1194,68 @@ function renderModulo3(){
       list.appendChild(row);
     });
     sheet.querySelector("#iniciar-sprint").addEventListener("click", ()=>{
-      m3.fase = "evento";
-      m3.eventoIndex = 0;
+      m3.fase = "secuencia";
+      m3.pasoIndex = 0;
       render();
     });
     return;
   }
 
-  if(m3.fase==="evento"){
-    if(m3.eventoIndex >= EVENTOS_M3.length){
+  if(m3.fase==="secuencia"){
+    if(m3.pasoIndex >= SECUENCIA_M3.length){
       m3.fase = "resultado";
       render();
       return;
     }
-    const ev = EVENTOS_M3[m3.eventoIndex];
+    const paso = SECUENCIA_M3[m3.pasoIndex];
+
+    if(paso.tipo === "daily"){
+      const d = paso.data;
+      sheet.innerHTML = `
+        <span class="eyebrow">Día ${d.dia} · Rol: Scrum Master — Facilitación de la daily</span>
+        <div class="evento-card" style="border-left-color:var(--teal);">
+          <span class="dia" style="color:var(--teal);">Daily Standup</span>
+          <p style="margin:6px 0 0 0;">${d.texto}</p>
+        </div>
+        <div class="opciones" id="opciones-paso"></div>
+      `;
+      main.appendChild(sheet);
+      const cont = sheet.querySelector("#opciones-paso");
+      d.opciones.forEach(op=>{
+        const b = document.createElement("button");
+        b.className = "opcion";
+        b.textContent = op.texto;
+        b.addEventListener("click", ()=>{
+          m3.moral = Math.max(0, Math.min(100, m3.moral + (op.efecto.moral||0)));
+          m3.capacidadUsadaExtra += (op.efecto.capacidadExtra||0);
+          m3.log.push(op.efecto.nota);
+          m3.pasoIndex++;
+          render();
+        });
+        cont.appendChild(b);
+      });
+      return;
+    }
+
+    const ev = paso.data;
     sheet.innerHTML = `
-      <span class="eyebrow">Sprint en curso</span>
+      <span class="eyebrow">Día ${ev.dia} · Rol: Scrum Master — Gestión de imprevistos</span>
       <div class="evento-card">
-        <span class="dia">Día ${ev.dia} del sprint</span>
+        <span class="dia">Sprint en curso</span>
         <p style="margin:6px 0 0 0;">${ev.texto}</p>
       </div>
-      <div class="opciones" id="opciones-evento"></div>
+      <div class="opciones" id="opciones-paso"></div>
     `;
     main.appendChild(sheet);
-    const cont = sheet.querySelector("#opciones-evento");
+    const cont = sheet.querySelector("#opciones-paso");
     ev.opciones.forEach(op=>{
       const b = document.createElement("button");
       b.className = "opcion";
       b.textContent = op.texto;
       b.addEventListener("click", ()=>{
-        m3.capacidadUsadaExtra += op.efecto.capacidadExtra;
+        m3.capacidadUsadaExtra += (op.efecto.capacidadExtra||0);
         m3.log.push(op.efecto.nota);
-        m3.eventoIndex++;
+        m3.pasoIndex++;
         render();
       });
       cont.appendChild(b);
@@ -1218,8 +1288,14 @@ function renderResultadoM3(){
     comentario = "El sprint no se pudo cumplir al 100%. Entre lo comprometido de más y los imprevistos, la capacidad real del equipo no alcanzó. Vale la pena revisar si se sobreestimó la capacidad o si se comprometieron demasiadas historias de entrada.";
   }
 
+  let comentarioMoral;
+  if(m3.moral>=80) comentarioMoral = "El equipo terminó el sprint con buena energía: facilitaste dailies cortas y resolviste las tensiones antes de que escalaran.";
+  else if(m3.moral>=55) comentarioMoral = "El equipo cerró el sprint funcionando, pero con algo de desgaste en la dinámica diaria. Vale la pena repasar alguna de las decisiones de facilitación.";
+  else comentarioMoral = "El equipo terminó cansado y con roces sin resolver. Cuidar la dinámica de la daily no es un detalle menor: afecta directamente cómo rinde el equipo sprint tras sprint.";
+
   state.mod3.completado = true;
   state.mod3.score = pctCumplimiento;
+  state.mod3.moral = m3.moral;
   saveState();
 
   return `
@@ -1228,7 +1304,12 @@ function renderResultadoM3(){
     <div class="sello">${cumplido ? "Sprint Cerrado" : "Objetivo No Alcanzado"}</div>
     <p class="mono" style="font-size:.8rem;">Comprometido: ${comprometido} pts · Capacidad real tras imprevistos: ${capacidadReal} pts</p>
     <p class="lead">${comentario}</p>
-    <p><strong>Bitácora del sprint:</strong></p>
+
+    <p style="margin-top:16px;"><strong>Clima de equipo (rol Scrum Master): ${m3.moral}/100</strong></p>
+    <div class="capacidad-bar"><div class="capacidad-fill ${m3.moral<55?'over':''}" style="width:${m3.moral}%"></div></div>
+    <p class="lead">${comentarioMoral}</p>
+
+    <p style="margin-top:14px;"><strong>Bitácora del sprint:</strong></p>
     <ul class="req-list">${logHtml}</ul>
     <button class="primary" id="reintentar-m3">Repetir sprint</button>
   `;
