@@ -365,6 +365,40 @@
     outline:3px solid var(--teal);
     outline-offset:2px;
   }
+
+  /* Banner de instalación */
+  .install-banner{
+    display:none;
+    background:var(--mustard);
+    color:var(--navy);
+    padding:10px 16px;
+    text-align:center;
+    font-family:'Courier New',monospace;
+    font-size:.78rem;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .install-banner.visible{display:flex;}
+  .install-banner button{
+    background:var(--navy);
+    color:var(--paper);
+    border:none;
+    border-radius:var(--radius);
+    padding:7px 14px;
+    font-family:'Courier New',monospace;
+    text-transform:uppercase;
+    font-size:.72rem;
+    letter-spacing:.5px;
+    cursor:pointer;
+  }
+  .install-banner .cerrar-banner{
+    background:transparent;
+    color:var(--navy);
+    border:1px solid var(--navy);
+    padding:6px 10px;
+  }
 </style>
 </head>
 <body>
@@ -378,6 +412,12 @@
     <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
   </nav>
 </header>
+
+<div class="install-banner" id="install-banner">
+  <span id="install-banner-texto">📋 Instalá el Legajo como app para usarlo sin conexión.</span>
+  <button id="btn-instalar">Instalar</button>
+  <button class="cerrar-banner" id="btn-cerrar-banner">Ahora no</button>
+</div>
 
 <main id="main"></main>
 
@@ -1313,6 +1353,64 @@ function renderResultadoM3(){
     <ul class="req-list">${logHtml}</ul>
     <button class="primary" id="reintentar-m3">Repetir sprint</button>
   `;
+}
+
+/* ============================================================
+   INSTALACIÓN DE LA PWA
+   ============================================================ */
+const INSTALL_DISMISSED_KEY = "legajo-sistemas-install-dismissed";
+let deferredInstallPrompt = null;
+
+function estaInstalada(){
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+function esIOS(){
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+}
+
+const banner = document.getElementById("install-banner");
+const bannerTexto = document.getElementById("install-banner-texto");
+const btnInstalar = document.getElementById("btn-instalar");
+const btnCerrarBanner = document.getElementById("btn-cerrar-banner");
+
+function mostrarBanner(){
+  if(estaInstalada()) return;
+  if(localStorage.getItem(INSTALL_DISMISSED_KEY)) return;
+  banner.classList.add("visible");
+}
+
+// Chrome / Edge / Android: el navegador dispara este evento cuando la PWA es instalable
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  bannerTexto.textContent = "📋 Instalá el Legajo como app para usarlo sin conexión.";
+  btnInstalar.style.display = "inline-block";
+  mostrarBanner();
+});
+
+btnInstalar.addEventListener("click", async ()=>{
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  banner.classList.remove("visible");
+});
+
+btnCerrarBanner.addEventListener("click", ()=>{
+  banner.classList.remove("visible");
+  localStorage.setItem(INSTALL_DISMISSED_KEY, "1");
+});
+
+window.addEventListener("appinstalled", ()=>{
+  banner.classList.remove("visible");
+  localStorage.setItem(INSTALL_DISMISSED_KEY, "1");
+});
+
+// iOS Safari no dispara beforeinstallprompt: mostramos instrucciones manuales
+if(esIOS() && !estaInstalada()){
+  bannerTexto.textContent = "📋 Para instalar: tocá Compartir y elegí 'Agregar a pantalla de inicio'.";
+  btnInstalar.style.display = "none";
+  mostrarBanner();
 }
 
 /* ============================================================
