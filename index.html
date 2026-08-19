@@ -848,6 +848,28 @@ const CASOS_M2 = [
     razones:["mixto_partes_estables_y_cambiantes","criticidad_media","cliente_disponible","normativa_parcial"],
     modelo:"hibrida",
     justificacion:"Cuando conviven partes con requisitos fijos (facturación, con reglas contractuales) y partes que todavía se están definiendo (agenda, turnos), un enfoque híbrido tiene sentido: Cascada para lo estable, Ágil para lo que se sigue ajustando con el usuario."
+  },
+  {
+    id:"c6",
+    ambiguo:true,
+    titulo:"Sistema de turnos y fichas para un consultorio odontológico familiar",
+    texto:"Un consultorio odontológico atendido por dos odontólogos quiere un sistema para gestionar turnos y fichas de pacientes. No hay una fecha límite estricta y los dueños están disponibles para reunirse seguido, pero el sistema maneja datos sensibles de salud, que exigen cuidado en el diseño de la base de datos desde el arranque. Además, todavía no está claro cuántas funciones extra (recordatorios por WhatsApp, facturación, historia clínica digital) van a querer sumar con el tiempo.",
+    razones:["datos_sensibles","sin_fecha_limite","cliente_disponible","alcance_incierto","mixto_partes_estables_y_cambiantes"],
+    modelo:null,
+    perspectivas:{
+      cascada:{
+        razones:["datos_sensibles","sin_fecha_limite"],
+        texto:"Se puede defender Cascada: al manejar datos de salud (sensibles), conviene planificar bien el modelo de datos y la seguridad desde el arranque, antes de escribir código. Además, al no haber fecha límite estricta, hay margen para planificar en detalle sin la presión de entregar rápido."
+      },
+      agil:{
+        razones:["cliente_disponible","alcance_incierto"],
+        texto:"También se puede defender Ágil: el alcance todavía no está definido (no saben qué funciones extra van a querer) y los dueños están disponibles para reunirse seguido — ideal para iterar y decidir sobre la marcha en vez de intentar planificarlo todo de antemano."
+      },
+      hibrida:{
+        razones:["datos_sensibles","mixto_partes_estables_y_cambiantes"],
+        texto:"Una tercera postura, híbrida, también es razonable: planificar con cuidado (tipo Cascada) el modelo de datos de pacientes por su sensibilidad, y dejar el resto de las funciones (recordatorios, facturación) para iterar de forma ágil a medida que se van definiendo."
+      }
+    }
   }
 ];
 
@@ -864,7 +886,10 @@ const RAZONES_LABELS = {
   equipo_chico:"El equipo es chico y necesita organizarse ágilmente",
   criticidad_altisima:"Un error puede ser catastrófico / crítico",
   criticidad_media:"Hay partes críticas y partes no críticas conviviendo",
-  mixto_partes_estables_y_cambiantes:"Conviven partes estables y partes que cambian"
+  mixto_partes_estables_y_cambiantes:"Conviven partes estables y partes que cambian",
+  datos_sensibles:"Maneja datos sensibles que requieren cuidado en el diseño desde el inicio",
+  sin_fecha_limite:"No hay una fecha límite estricta que fuerce a iterar rápido",
+  alcance_incierto:"Todavía no está claro cuánto va a crecer el alcance del sistema"
 };
 
 let m2 = {indice:0, respuestas:[], metodoElegido:null, razonesElegidas:new Set(), mostrandoFeedback:false};
@@ -889,15 +914,35 @@ function renderModulo2(){
 
   if(m2.mostrandoFeedback){
     const ultimaResp = m2.respuestas[m2.respuestas.length-1];
-    const acierto = ultimaResp.metodoElegido === caso.modelo;
-    sheet.innerHTML = `
-      <span class="eyebrow">Caso ${m2.indice+1} de ${CASOS_M2.length} · Devolución</span>
-      <h2>Elegiste: ${labelMetodo(ultimaResp.metodoElegido)}</h2>
-      <div class="sello">${acierto ? "Coincide con criterio experto" : "Mirá esto antes de seguir"}</div>
-      <p><strong>Metodología orientativa:</strong> ${labelMetodo(caso.modelo)}.</p>
-      <p class="lead">${caso.justificacion}</p>
-      <button class="primary" id="siguiente-caso">Siguiente caso</button>
-    `;
+
+    if(caso.ambiguo){
+      const perspectivaElegida = caso.perspectivas[ultimaResp.metodoElegido];
+      const otras = Object.keys(caso.perspectivas).filter(k=>k!==ultimaResp.metodoElegido);
+      const otrasHtml = otras.map(k=>
+        `<div class="card"><strong>${labelMetodo(k)}:</strong> ${caso.perspectivas[k].texto}</div>`
+      ).join("");
+      sheet.innerHTML = `
+        <span class="eyebrow">Caso ${m2.indice+1} de ${CASOS_M2.length} · Caso de debate</span>
+        <h2>Elegiste: ${labelMetodo(ultimaResp.metodoElegido)}</h2>
+        <div class="sello">Para Debatir en Clase</div>
+        <p class="lead">Este caso se armó a propósito sin una única respuesta correcta. Tu elección es defendible:</p>
+        <p>${perspectivaElegida.texto}</p>
+        <p class="lead" style="margin-top:14px;">Pero también se puede defender lo contrario:</p>
+        ${otrasHtml}
+        <p class="lead" style="margin-top:14px;">Guardá este caso para discutirlo en clase: el objetivo no es acertarle a "la" respuesta, sino que cada quien fundamente su elección con el contexto.</p>
+        <button class="primary" id="siguiente-caso">Siguiente caso</button>
+      `;
+    } else {
+      const acierto = ultimaResp.metodoElegido === caso.modelo;
+      sheet.innerHTML = `
+        <span class="eyebrow">Caso ${m2.indice+1} de ${CASOS_M2.length} · Devolución</span>
+        <h2>Elegiste: ${labelMetodo(ultimaResp.metodoElegido)}</h2>
+        <div class="sello">${acierto ? "Coincide con criterio experto" : "Mirá esto antes de seguir"}</div>
+        <p><strong>Metodología orientativa:</strong> ${labelMetodo(caso.modelo)}.</p>
+        <p class="lead">${caso.justificacion}</p>
+        <button class="primary" id="siguiente-caso">Siguiente caso</button>
+      `;
+    }
     main.appendChild(sheet);
     sheet.querySelector("#siguiente-caso").addEventListener("click", ()=>{
       m2.indice++;
@@ -910,8 +955,9 @@ function renderModulo2(){
   }
 
   sheet.innerHTML = `
-    <span class="eyebrow">Caso ${m2.indice+1} de ${CASOS_M2.length}</span>
+    <span class="eyebrow">Caso ${m2.indice+1} de ${CASOS_M2.length}${caso.ambiguo ? ' · <span class="dif-tag dif-contradictoria">Caso de debate</span>' : ''}</span>
     <h2>${caso.titulo}</h2>
+    ${caso.ambiguo ? '<p class="lead"><strong>Aviso:</strong> este caso fue armado a propósito sin una única respuesta correcta. El objetivo es que puedas fundamentar tu elección, no acertarle a "la" respuesta.</p>' : ''}
     <p class="lead">${caso.texto}</p>
     <p><strong>1. ¿Qué metodología usarías?</strong></p>
     <div class="metodo-picker" id="metodo-picker">
@@ -986,15 +1032,17 @@ function renderResultadoM2(){
   let aciertos = 0;
   let razonesCorrectas = 0;
   let razonesTotal = 0;
+  const casosEvaluables = CASOS_M2.filter(c=>!c.ambiguo).length;
+
   m2.respuestas.forEach(r=>{
     const caso = CASOS_M2.find(c=>c.id===r.casoId);
-    if(r.metodoElegido === caso.modelo) aciertos++;
+    if(!caso.ambiguo && r.metodoElegido === caso.modelo) aciertos++;
     r.razonesElegidas.forEach(rz=>{
       razonesTotal++;
       if(caso.razones.includes(rz)) razonesCorrectas++;
     });
   });
-  const score = Math.round(((aciertos/CASOS_M2.length)*0.6 + (razonesTotal? (razonesCorrectas/razonesTotal):0)*0.4) * 100);
+  const score = Math.round(((aciertos/casosEvaluables)*0.6 + (razonesTotal? (razonesCorrectas/razonesTotal):0)*0.4) * 100);
   state.mod2.completado = true;
   state.mod2.score = score;
   saveState();
@@ -1008,8 +1056,9 @@ function renderResultadoM2(){
     <span class="eyebrow">Resultado del módulo</span>
     <h2>Coincidencia con criterio experto: ${score}%</h2>
     <div class="sello">${score>=70 ? "Criterio Fundamentado" : "A Revisar"}</div>
-    <p>Acertaste la metodología orientativa en ${aciertos} de ${CASOS_M2.length} casos.</p>
+    <p>Acertaste la metodología orientativa en ${aciertos} de ${casosEvaluables} casos con respuesta esperada.</p>
     <p class="lead">${comentario}</p>
+    <p class="lead" style="font-size:.85rem;">El caso de debate no se cuenta para este puntaje de "acierto de método" — se evaluó solo si fundamentaste tu elección con razones válidas. Guardalo para discutirlo en clase.</p>
     <button class="primary" id="reintentar-m2">Repetir módulo</button>
   `;
 }
