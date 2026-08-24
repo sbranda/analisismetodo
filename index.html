@@ -258,6 +258,17 @@
   .dif-evasivo{background:var(--mustard);}
   .dif-contradictoria{background:var(--stamp);}
   .dif-apurado{background:var(--navy-soft);}
+  .dif-autoritario{background:#8A2E2E;}
+  .dif-pasivo{background:#6B5B95;}
+  .dif-ausente{background:#5a6b7a;}
+  .dif-microgestor{background:#B36A00;}
+
+  /* Módulo 4 — medidores de relación / profesionalismo */
+  .medidores-m4{display:flex; flex-direction:column; gap:8px; margin:10px 0;}
+  .medidor-m4{font-size:.78rem; font-family:'Courier New',monospace;}
+  .medidor-m4 .barra-fondo{background:var(--paper-dark); border:1px solid var(--ink); border-radius:6px; height:10px; overflow:hidden; margin-top:3px;}
+  .medidor-m4 .barra-fill{height:100%; background:var(--teal);}
+  .medidor-m4 .barra-fill.baja{background:var(--stamp);}
 
   /* stamp visual */
   .sello{
@@ -418,6 +429,7 @@
     <button data-mod="1" class="active">Módulo 1<br>Relevamiento <span class="stamp-mini" id="stamp1"></span></button>
     <button data-mod="2">Módulo 2<br>Metodología <span class="stamp-mini" id="stamp2"></span></button>
     <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
+    <button data-mod="4">Módulo 4<br>Jefes <span class="stamp-mini" id="stamp4"></span></button>
   </nav>
 </header>
 
@@ -445,7 +457,8 @@ function loadState(){
   return {
     mod1:{completado:false, personas:{}},
     mod2:{completado:false, score:0},
-    mod3:{completado:false, score:0}
+    mod3:{completado:false, score:0},
+    mod4:{completado:false, jefes:{}}
   };
 }
 function saveState(){
@@ -453,12 +466,16 @@ function saveState(){
 }
 let state = loadState();
 if(!state.mod1.personas) state.mod1.personas = {};
+if(!state.mod4) state.mod4 = {completado:false, jefes:{}};
+if(!state.mod4.jefes) state.mod4.jefes = {};
 
 function refreshStamps(){
   const hechosM1 = Object.values(state.mod1.personas || {}).filter(p=>p.completado).length;
   document.getElementById("stamp1").textContent = hechosM1>0 ? `${hechosM1}/4` : "";
   document.getElementById("stamp2").textContent = state.mod2.completado ? "✓" : "";
   document.getElementById("stamp3").textContent = state.mod3.completado ? "✓" : "";
+  const hechosM4 = Object.values(state.mod4.jefes || {}).filter(j=>j.completado).length;
+  document.getElementById("stamp4").textContent = hechosM4>0 ? `${hechosM4}/5` : "";
 }
 
 /* ============================================================
@@ -488,6 +505,7 @@ function render(){
   if(currentMod===1) renderModulo1();
   if(currentMod===2) renderModulo2();
   if(currentMod===3) renderModulo3();
+  if(currentMod===4) renderModulo4();
 }
 
 /* ============================================================
@@ -1361,6 +1379,409 @@ function renderResultadoM3(){
     <ul class="req-list">${logHtml}</ul>
     <button class="primary" id="reintentar-m3">Repetir sprint</button>
   `;
+}
+
+/* ============================================================
+   MÓDULO 4 — JEFES (simulador de situaciones con distintos perfiles)
+   ============================================================ */
+const JEFES_M4 = [
+  {
+    id:"ricardo", nombre:"Ricardo", rol:"Jefe de Proyecto", perfil:"Autoritario",
+    colorClase:"dif-autoritario",
+    descripcion:"Da órdenes sin explicar el porqué, no acepta que le cuestionen las decisiones y sube el tono cuando algo sale mal.",
+    tip:"Con un jefe autoritario, la confrontación pública rara vez funciona. Lo que sí funciona es aceptar la autoridad formal, pero llevar tus objeciones o riesgos a un espacio privado, con propuestas concretas.",
+    situaciones:[
+      {id:"r1", texto:"En medio de una reunión, Ricardo te asigna una tarea urgente con una fecha imposible, sin explicar el motivo, y con tono cortante.",
+       opciones:[
+         {texto:"Responderle ahí mismo, delante de todos, que ese plazo es una locura.", relacion:-3, profesionalismo:-2,
+          feedback:"Cuestionarlo en público, aunque tengas razón, lo pone a la defensiva frente al equipo y genera un enfrentamiento innecesario."},
+         {texto:"Aceptar sin decir nada y quedarte horas extra para llegar a como dé lugar.", relacion:1, profesionalismo:-1,
+          feedback:"Cumplís a corto plazo, pero no dejás registro del riesgo. Si después algo falla, la responsabilidad recae solo en vos."},
+         {texto:"Aceptar la tarea, y pedirle unos minutos a solas después para plantear el riesgo del plazo con una alternativa concreta.", relacion:1, profesionalismo:3,
+          feedback:"Mantener la calma en público y llevar el reclamo en privado, con una propuesta concreta, es la forma más efectiva de gestionar a un jefe autoritario."}
+       ]},
+      {id:"r2", texto:"Te corrige un informe delante de tus compañeros, en tono duro, por un error menor.",
+       opciones:[
+         {texto:"Responder también en tono elevado, defendiéndote frente a todos.", relacion:-3, profesionalismo:-2,
+          feedback:"Escalar el tono frente al equipo empeora la situación aunque el error haya sido menor."},
+         {texto:"Quedarte callado, sin decir nada, y evitarlo el resto del día.", relacion:0, profesionalismo:-1,
+          feedback:"Evitar el conflicto no lo resuelve, y sin pedir precisión corrés el riesgo de repetir el mismo error."},
+         {texto:"Reconocer el error con calma, y pedirle feedback específico en privado más tarde para no repetirlo.", relacion:2, profesionalismo:3,
+          feedback:"Reconocer el error sin dramatizarlo, y buscar precisión después, en privado, es la respuesta más profesional."}
+       ]},
+      {id:"r3", texto:"Te pide un cambio de último momento que contradice exactamente lo que te había pedido la semana anterior, sin reconocer la contradicción.",
+       opciones:[
+         {texto:"Señalarle la contradicción de forma directa: 'usted mismo me dijo lo contrario'.", relacion:-2, profesionalismo:0,
+          feedback:"El señalamiento tiene valor, pero el tono desafiante puede sonar más a reproche que a aporte."},
+         {texto:"No decir nada, aceptar el cambio y rehacer todo el trabajo sin comentario.", relacion:1, profesionalismo:-1,
+          feedback:"Cumplís, pero no dejás ningún registro que te proteja si el cambio genera un problema más adelante."},
+         {texto:"Aceptar el cambio y mandar un mensaje resumiendo por escrito la nueva indicación, sin remarcar la contradicción.", relacion:2, profesionalismo:3,
+          feedback:"Documentar el cambio por escrito te cubre sin necesidad de confrontar; queda un historial claro sin generar tensión."}
+       ]},
+      {id:"r4", texto:"Te grita delante del equipo por un problema que en realidad fue de otro compañero.",
+       opciones:[
+         {texto:"Callarte y asumir la culpa para evitar el conflicto en el momento.", relacion:1, profesionalismo:-2,
+          feedback:"Te protege del choque inmediato, pero sienta un precedente injusto que puede repetirse."},
+         {texto:"Señalar ahí mismo, delante de todos, que el error fue de otra persona.", relacion:-3, profesionalismo:-1,
+          feedback:"Exponer a un compañero en público, aunque tengas razón, genera mal clima y puede jugarte en contra."},
+         {texto:"Pedir hablar en privado apenas termine la reunión, para aclarar los hechos con calma sin exponer a nadie.", relacion:0, profesionalismo:3,
+          feedback:"Aclarar los hechos en privado, sin exponer a un compañero, es la forma más profesional de manejarlo."}
+       ]}
+    ]
+  },
+  {
+    id:"marina", nombre:"Marina", rol:"Jefa de Área", perfil:"Pasivo-agresiva",
+    colorClase:"dif-pasivo",
+    descripcion:"No dice las cosas de manera directa: usa ironía, indirectas y comentarios con doble sentido en vez de plantear el problema de frente.",
+    tip:"Con un jefe pasivo-agresivo, la clave es pedir concreción sin devolver el mismo tono. Forzar que la indirecta se convierta en un pedido claro rompe el circuito.",
+    situaciones:[
+      {id:"ma1", texto:"Después de entregarle un informe, Marina te escribe: 'Todo bien con el informe... si a vos te parece que está terminado'.",
+       opciones:[
+         {texto:"Ignorar el comentario y no responder nada.", relacion:-1, profesionalismo:-1,
+          feedback:"Ignorarlo deja la duda flotando y lo más probable es que el problema reaparezca más adelante."},
+         {texto:"Responderle con el mismo tono irónico.", relacion:-2, profesionalismo:-2,
+          feedback:"Entrar en el mismo juego de indirectas escala la tensión sin resolver nada concreto."},
+         {texto:"Preguntarle directamente y sin ironía qué parte específica considera que falta.", relacion:2, profesionalismo:3,
+          feedback:"Pedir concreción, sin devolver el tono, rompe el circuito de indirectas y obliga a que la crítica se vuelva accionable."}
+       ]},
+      {id:"ma2", texto:"En una reunión de equipo, hace un comentario sarcástico sobre 'cierta forma de trabajar' sin nombrarte, pero todos entienden que es sobre vos.",
+       opciones:[
+         {texto:"Responderle con otro comentario sarcástico, delante de todos.", relacion:-3, profesionalismo:-2,
+          feedback:"Devolver el sarcasmo en público empeora el clima del equipo y no aclara nada."},
+         {texto:"Quedarte en silencio y comentarlo por lo bajo con un compañero después.", relacion:-1, profesionalismo:-1,
+          feedback:"Hablarlo por atrás no cambia nada con ella y puede generar más rumores dentro del equipo."},
+         {texto:"Después de la reunión, pedirle en privado que te diga directamente si hay algo puntual que le preocupa.", relacion:1, profesionalismo:3,
+          feedback:"Buscar la conversación directa en privado es la forma más sana de sacar el tema de las indirectas."}
+       ]},
+      {id:"ma3", texto:"Te asigna una tarea, pero cuando le pedís detalles te responde con evasivas tipo 'vos fijate, como te parezca'.",
+       opciones:[
+         {texto:"Tomarlo literal y resolverlo completamente a tu criterio, sin volver a preguntar.", relacion:-1, profesionalismo:0,
+          feedback:"Puede salir bien o mal: sin acordar un criterio mínimo, el riesgo de que después no le guste el resultado es alto."},
+         {texto:"Insistir varias veces pidiéndole que decida ella.", relacion:-2, profesionalismo:-1,
+          feedback:"Insistir sin ofrecer nada concreto suele chocar contra la misma evasiva, una y otra vez."},
+         {texto:"Proponerle vos un criterio concreto y pedirle que confirme si está de acuerdo o prefiere otra cosa.", relacion:2, profesionalismo:3,
+          feedback:"Ofrecer una propuesta concreta para que solo tenga que aprobar o corregir suele destrabar a un jefe evasivo."}
+       ]},
+      {id:"ma4", texto:"Notás que hace tiempo que no te da ningún feedback de tu desempeño, ni bueno ni malo, y sentís incertidumbre.",
+       opciones:[
+         {texto:"No decir nada y esperar a que ella lo mencione en algún momento.", relacion:0, profesionalismo:-1,
+          feedback:"Esperar pasivamente prolonga la incertidumbre; un jefe pasivo-agresivo no siempre toma la iniciativa."},
+         {texto:"Pedirle abiertamente una reunión breve para recibir feedback concreto sobre tu desempeño.", relacion:2, profesionalismo:3,
+          feedback:"Pedir feedback de forma directa y concreta es la mejor manera de cortar la incertidumbre con un jefe indirecto."},
+         {texto:"Comentarlo con otros compañeros para ver si a ellos también les pasa, sin hablarlo con ella.", relacion:-1, profesionalismo:-1,
+          feedback:"Puede darte contexto, pero no reemplaza plantearle la situación directamente a ella."}
+       ]}
+    ]
+  },
+  {
+    id:"diego", nombre:"Diego", rol:"Jefe de Sistemas", perfil:"Ausente / desentendido",
+    colorClase:"dif-ausente",
+    descripcion:"Casi nunca está disponible, delega todo con instrucciones vagas y no da feedback ni revisa el trabajo del equipo.",
+    tip:"Con un jefe ausente, avanzar con supuestos documentados y ponerle plazos razonables a tus propios pedidos suele ser más efectivo que esperar a que él tome la iniciativa.",
+    situaciones:[
+      {id:"d1", texto:"Diego te asigna un proyecto grande diciendo solo 'hacé lo que consideres mejor', y después desaparece.",
+       opciones:[
+         {texto:"Empezar sin pedir nada más, resolviendo todo por tu cuenta, cueste lo que cueste.", relacion:0, profesionalismo:0,
+          feedback:"Puede funcionar, pero avanzar sin ningún punto de control aumenta el riesgo de rehacer todo si el resultado no era lo esperado."},
+         {texto:"Frenar la tarea hasta que aparezca y te dé instrucciones más claras.", relacion:-2, profesionalismo:-2,
+          feedback:"Frenar por completo perjudica el avance del proyecto y a vos como responsable del entregable."},
+         {texto:"Definir vos un plan con supuestos claros, avanzar, y mandarle updates cortos por escrito aunque no responda.", relacion:1, profesionalismo:3,
+          feedback:"Documentar tus supuestos y avances te cubre ante cualquier reclamo futuro y demuestra iniciativa profesional."}
+       ]},
+      {id:"d2", texto:"Necesitás una decisión suya para seguir con una tarea urgente, pero no contesta mensajes hace días.",
+       opciones:[
+         {texto:"Tomar la decisión vos mismo, sin avisarle, y seguir adelante.", relacion:0, profesionalismo:0,
+          feedback:"Puede ser necesario, pero conviene dejar constancia de que la decisión se tomó por necesidad de avanzar."},
+         {texto:"Escalar directamente a un superior de Diego, sin avisarle a él primero.", relacion:-3, profesionalismo:-1,
+          feedback:"Saltearlo sin darle la oportunidad de responder puede generar un conflicto innecesario, salvo urgencia extrema."},
+         {texto:"Ponerle una fecha límite razonable, avisarle por escrito que si no hay respuesta vas a avanzar con tu criterio, y hacerlo.", relacion:1, profesionalismo:3,
+          feedback:"Poner un plazo claro y dejarlo por escrito es la forma más profesional de manejar la ausencia de respuesta."}
+       ]},
+      {id:"d3", texto:"Entregás un trabajo importante y nunca te da ningún tipo de devolución, ni buena ni mala.",
+       opciones:[
+         {texto:"Asumir que como no dijo nada, está todo bien y seguir sin más.", relacion:0, profesionalismo:-1,
+          feedback:"El silencio no siempre significa aprobación; puede haber problemas que nadie te está avisando."},
+         {texto:"Pedirle explícitamente, aunque sea por mensaje, una confirmación breve de que el trabajo cumplió lo esperado.", relacion:1, profesionalismo:3,
+          feedback:"Pedir una confirmación concreta es la manera más simple de cerrar el ciclo con un jefe que no da feedback espontáneo."},
+         {texto:"Bajar el nivel de esfuerzo en los próximos trabajos ya que 'total no lo revisa'.", relacion:-1, profesionalismo:-3,
+          feedback:"Bajar tu propio estándar por la ausencia del jefe afecta tu trabajo y tu reputación, no la de él."}
+       ]},
+      {id:"d4", texto:"El equipo no tiene reuniones de coordinación hace semanas y las tareas se están superponiendo entre compañeros.",
+       opciones:[
+         {texto:"No hacer nada, no es tu responsabilidad organizar al equipo.", relacion:0, profesionalismo:-2,
+          feedback:"Aunque no sea tu rol formal, dejar que el desorden crezca también te termina perjudicando a vos."},
+         {texto:"Proponerle a Diego armar una reunión corta semanal de coordinación, aunque sea informal.", relacion:2, profesionalismo:3,
+          feedback:"Tomar la iniciativa para resolver un vacío de organización es valorado incluso por un jefe desentendido."},
+         {texto:"Organizar vos las tareas del equipo, sin consultarlo ni avisarle.", relacion:-1, profesionalismo:0,
+          feedback:"Puede resolver el desorden puntual, pero sin avisar al jefe podés generar roces con tus compañeros."}
+       ]}
+    ]
+  },
+  {
+    id:"patricia", nombre:"Patricia", rol:"Jefa de Desarrollo", perfil:"Microgestora",
+    colorClase:"dif-microgestor",
+    descripcion:"Pide reportes constantes, revisa cada detalle, no delega y necesita estar al tanto de todo lo que hace el equipo en todo momento.",
+    tip:"Con un jefe microgestor, ceder en los detalles menores y negociar un formato de seguimiento que le dé visibilidad suele funcionar mejor que resistirse a todo.",
+    situaciones:[
+      {id:"p1", texto:"Patricia te pide que le mandes un resumen de avance cada dos horas, incluso en tareas simples.",
+       opciones:[
+         {texto:"Ignorar el pedido y mandarle solo un resumen al final del día.", relacion:-2, profesionalismo:-1,
+          feedback:"Ignorar un pedido directo, aunque parezca excesivo, genera desconfianza y roce innecesario."},
+         {texto:"Cumplir el pedido literal, aunque te haga perder tiempo de trabajo real.", relacion:1, profesionalismo:0,
+          feedback:"Cumplís, pero no resolvés el problema de fondo: vas a seguir perdiendo tiempo en reportes."},
+         {texto:"Proponerle un formato de reporte más corto y espaciado que igual le dé visibilidad sin interrumpir tanto el trabajo.", relacion:2, profesionalismo:3,
+          feedback:"Negociar un formato de seguimiento que cubra su necesidad de control sin frenar tu productividad es la mejor salida."}
+       ]},
+      {id:"p2", texto:"Revisa tu trabajo línea por línea y te pide cambiar detalles menores de estilo que no afectan el resultado.",
+       opciones:[
+         {texto:"Discutir cada cambio que te pide, punto por punto.", relacion:-2, profesionalismo:-1,
+          feedback:"Discutir cada detalle agota la relación; conviene priorizar qué vale la pena defender."},
+         {texto:"Aceptar todos los cambios sin decir nada, aunque no estés de acuerdo con ninguno.", relacion:1, profesionalismo:0,
+          feedback:"Evitás el roce, pero perdés la oportunidad de defender con argumentos lo que sí es importante."},
+         {texto:"Aceptar los cambios de estilo sin problema, pero plantear con datos concretos los que sí afectan el resultado o el tiempo.", relacion:2, profesionalismo:3,
+          feedback:"Elegir bien las batallas —ceder en lo menor, argumentar con datos en lo importante— es clave frente a un microgestor."}
+       ]},
+      {id:"p3", texto:"Te pide que la copies (CC) en todos los mails, incluso los más triviales, e interviene en conversaciones que ya estabas manejando bien.",
+       opciones:[
+         {texto:"Dejar de copiarla en algunos mails 'para no molestar'.", relacion:-2, profesionalismo:-2,
+          feedback:"Incumplir un pedido explícito sin avisar genera desconfianza y puede interpretarse como que ocultás información."},
+         {texto:"Cumplir sin cuestionar, aunque sientas que no confía en tu trabajo.", relacion:1, profesionalismo:0,
+          feedback:"Cumplís el pedido, pero no hacés nada para que la situación mejore con el tiempo."},
+         {texto:"Cumplir el pedido, y en paralelo mostrarle con hechos —cumpliendo plazos, avisando problemas a tiempo— que puede confiar en vos.", relacion:2, profesionalismo:3,
+          feedback:"Construir confianza con resultados consistentes es, a mediano plazo, lo que hace que un microgestor afloje el control."}
+       ]},
+      {id:"p4", texto:"Te asigna una tarea, pero cada 20 minutos pasa a preguntarte cómo vas, interrumpiendo tu concentración.",
+       opciones:[
+         {texto:"Pedirle de mala manera que te deje trabajar tranquilo.", relacion:-3, profesionalismo:-2,
+          feedback:"Responder con mala onda, aunque la interrupción moleste, deteriora la relación sin resolver el problema."},
+         {texto:"No decir nada y aguantar las interrupciones como puedas.", relacion:0, profesionalismo:-1,
+          feedback:"Aguantar en silencio no resuelve nada y afecta tu productividad a largo plazo."},
+         {texto:"Proponerle avisarle vos proactivamente cada cierto tiempo, para que no sienta necesidad de venir a preguntar.", relacion:2, profesionalismo:3,
+          feedback:"Anticiparse a la necesidad de información de un microgestor suele ser más efectivo que esperar a que venga a pedirla."}
+       ]}
+    ]
+  },
+  {
+    id:"julieta", nombre:"Julieta", rol:"Jefa de referencia", perfil:"Ideal",
+    colorClase:"dif-ideal",
+    descripcion:"Comunica objetivos claros, da feedback constructivo, confía en el equipo y reconoce el trabajo bien hecho. Sirve como punto de comparación: incluso con un buen jefe, la forma en que respondés importa.",
+    tip:"Con un buen jefe, el error más común no es el conflicto sino desaprovechar la confianza: no dar tu opinión real, no consultar dudas genuinas, o no compartir el mérito con el equipo.",
+    situaciones:[
+      {id:"j1", texto:"Julieta te da feedback sobre un error, con buena onda y sugerencias concretas para mejorar.",
+       opciones:[
+         {texto:"Ponerte a la defensiva y justificar el error sin escuchar del todo la sugerencia.", relacion:-2, profesionalismo:-2,
+          feedback:"Aún con un jefe que da buen feedback, responder a la defensiva desaprovecha una oportunidad real de mejora."},
+         {texto:"Escuchar en silencio, sin comentar nada, y no aplicar realmente el cambio después.", relacion:0, profesionalismo:-1,
+          feedback:"Recibir el feedback en silencio no garantiza que realmente lo vayas a aplicar la próxima vez."},
+         {texto:"Agradecer el feedback, hacer una pregunta puntual para entenderlo bien, y aplicarlo en el próximo trabajo.", relacion:2, profesionalismo:3,
+          feedback:"Aprovechar el feedback bien dado, con una pregunta de clarificación, es la respuesta más profesional posible."}
+       ]},
+      {id:"j2", texto:"Te delega una tarea con autonomía, confiando en tu criterio, y te dice 'cualquier duda, avisame'.",
+       opciones:[
+         {texto:"No consultar nada aunque tengas dudas importantes, para no 'molestarla'.", relacion:-1, profesionalismo:-1,
+          feedback:"La confianza no significa que no debas consultar dudas reales; no hacerlo puede llevar a errores evitables."},
+         {texto:"Aprovechar la autonomía para avanzar, y consultarle puntualmente solo cuando surge una duda que lo amerita.", relacion:2, profesionalismo:3,
+          feedback:"Usar bien la autonomía, sin abusar de las consultas ni evitarlas del todo, es lo que un buen jefe espera."},
+         {texto:"Preguntarle cada paso igual, 'para curarte en salud', aunque no tengas dudas reales.", relacion:0, profesionalismo:-1,
+          feedback:"Consultar sin necesidad real desaprovecha la confianza que te está dando y puede transmitir inseguridad."}
+       ]},
+      {id:"j3", texto:"Reconoce en público el buen trabajo de tu equipo, mencionándote a vos en particular.",
+       opciones:[
+         {texto:"Restarle importancia y no decir nada, incómodo/a con el reconocimiento.", relacion:0, profesionalismo:0,
+          feedback:"No hay nada 'malo' en esta reacción, pero reconocer el mérito compartido fortalece más al equipo."},
+         {texto:"Agradecer y mencionar también el aporte de tus compañeros que colaboraron.", relacion:2, profesionalismo:3,
+          feedback:"Compartir el reconocimiento con el equipo genera buen clima y refuerza tu imagen de trabajo colaborativo."},
+         {texto:"Aprovechar el momento para pedir más responsabilidades o un ascenso ahí mismo.", relacion:-1, profesionalismo:-1,
+          feedback:"No es el peor movimiento, pero mezclar el reconocimiento del equipo con un pedido personal puede sonar oportunista."}
+       ]},
+      {id:"j4", texto:"Te pregunta directamente tu opinión sobre una decisión que va a tomar, porque valora tu perspectiva.",
+       opciones:[
+         {texto:"Decir 'lo que usted decida está bien' para evitar comprometerte.", relacion:0, profesionalismo:-2,
+          feedback:"Cuando un jefe pide genuinamente tu opinión, no dar una respuesta real desaprovecha la confianza y no aporta valor."},
+         {texto:"Dar tu opinión con fundamentos, aunque sea distinta a lo que ella parece inclinarse a hacer.", relacion:2, profesionalismo:3,
+          feedback:"Aportar una opinión fundamentada, incluso si difiere, es justamente lo que un buen jefe espera cuando pregunta."},
+         {texto:"Coincidir automáticamente con lo que parece que ella quiere escuchar.", relacion:1, profesionalismo:-1,
+          feedback:"Coincidir solo por quedar bien no aporta valor real y, con el tiempo, se nota."}
+       ]}
+    ]
+  }
+];
+
+let m4 = {jefeId:null, situacionIndex:0, relacion:0, profesionalismo:0, log:[], terminado:false};
+
+function resetM4(){
+  m4 = {jefeId:null, situacionIndex:0, relacion:0, profesionalismo:0, log:[], terminado:false};
+}
+function jefeActualM4(){
+  return JEFES_M4.find(j=>j.id===m4.jefeId);
+}
+function progresoM4(){
+  return Object.values(state.mod4.jefes || {}).filter(j=>j.completado).length;
+}
+function maxPosibleM4(jefe, campo){
+  return jefe.situaciones.reduce((acc,s)=> acc + Math.max(...s.opciones.map(o=>o[campo])), 0);
+}
+function minPosibleM4(jefe, campo){
+  return jefe.situaciones.reduce((acc,s)=> acc + Math.min(...s.opciones.map(o=>o[campo])), 0);
+}
+function pctM4(jefe, valor, campo){
+  const max = maxPosibleM4(jefe, campo);
+  const min = minPosibleM4(jefe, campo);
+  if(max===min) return 100;
+  return Math.max(0, Math.min(100, Math.round(((valor - min) / (max - min)) * 100)));
+}
+
+function elegirOpcionM4(op){
+  m4.relacion += op.relacion;
+  m4.profesionalismo += op.profesionalismo;
+  m4.log.push(op.feedback);
+  m4.situacionIndex++;
+  render();
+}
+
+function guardarResultadoM4(jefe){
+  const pctRel = pctM4(jefe, m4.relacion, "relacion");
+  const pctProf = pctM4(jefe, m4.profesionalismo, "profesionalismo");
+  if(!state.mod4.jefes) state.mod4.jefes = {};
+  const previo = state.mod4.jefes[jefe.id];
+  state.mod4.jefes[jefe.id] = {
+    completado:true,
+    relacion: previo ? Math.max(previo.relacion, pctRel) : pctRel,
+    profesionalismo: previo ? Math.max(previo.profesionalismo, pctProf) : pctProf
+  };
+  state.mod4.completado = progresoM4() === JEFES_M4.length;
+  saveState();
+}
+
+function renderSeleccionJefeM4(){
+  const progreso = progresoM4();
+  const cards = JEFES_M4.map(j=>{
+    const hecho = state.mod4.jefes && state.mod4.jefes[j.id] && state.mod4.jefes[j.id].completado;
+    const resultado = hecho ? state.mod4.jefes[j.id] : null;
+    return `
+      <div class="persona-card" data-id="${j.id}">
+        <div class="dif-tag ${j.colorClase}">${j.perfil}</div>
+        <h3 style="margin:6px 0 2px 0;">${j.nombre}</h3>
+        <p class="mono" style="font-size:.72rem; color:var(--ink-soft); margin:0 0 8px 0;">${j.rol}</p>
+        <p style="font-size:.85rem;">${j.descripcion}</p>
+        ${resultado ? `<p class="mono" style="font-size:.72rem; color:var(--teal);">Relación: ${resultado.relacion}% · Profesionalismo: ${resultado.profesionalismo}%</p>` : ''}
+        <button class="primary">${hecho ? 'Repetir situaciones' : 'Comenzar'}</button>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <span class="eyebrow">Módulo 4 · Jefes</span>
+    <h2>Elegí con qué jefe/a vas a practicar</h2>
+    <p class="lead">Cada perfil plantea situaciones típicas del día a día laboral. Tus decisiones afectan dos cosas por separado: cómo queda la <strong>relación</strong> con esa persona y qué tan <strong>profesional</strong> fue tu manera de manejarlo — no siempre van de la mano. Llevás ${progreso} de ${JEFES_M4.length} perfiles completos.</p>
+    <div class="personas-grid">${cards}</div>
+  `;
+}
+
+function renderResultadoM4(jefe){
+  const pctRel = pctM4(jefe, m4.relacion, "relacion");
+  const pctProf = pctM4(jefe, m4.profesionalismo, "profesionalismo");
+
+  let comentarioProf;
+  if(pctProf>=80) comentarioProf = "Manejaste las situaciones con un criterio muy profesional: elegiste respuestas asertivas, documentaste lo importante y evitaste tanto el enfrentamiento como el silencio pasivo.";
+  else if(pctProf>=50) comentarioProf = "Tuviste algunas respuestas sólidas, pero también decisiones más reactivas o pasivas que un profesional experimentado evitaría.";
+  else comentarioProf = "Predominaron las respuestas impulsivas o evasivas. Son reacciones entendibles, pero en un entorno laboral suelen generar más problemas de los que resuelven.";
+
+  let comentarioRel;
+  if(pctRel>=70) comentarioRel = `La relación con ${jefe.nombre} quedó en buenos términos.`;
+  else if(pctRel>=40) comentarioRel = `La relación con ${jefe.nombre} quedó neutral, sin grandes daños pero sin construir demasiada confianza tampoco.`;
+  else comentarioRel = `La relación con ${jefe.nombre} quedó bastante deteriorada.`;
+
+  let notaEspecial = "";
+  if(pctRel>=70 && pctProf<50){
+    notaEspecial = `<p class="lead"><strong>Ojo con esto:</strong> lograste llevarte bien con ${jefe.nombre}, pero a costa de ceder en tu profesionalismo (por ejemplo, evitando conflictos que valía la pena plantear). Llevarse bien no siempre significa haber actuado de la mejor manera.</p>`;
+  } else if(pctProf>=70 && pctRel<50){
+    notaEspecial = `<p class="lead"><strong>Vale la pena notar:</strong> actuaste de forma muy profesional, pero eso no siempre garantiza una buena relación inmediata con un jefe difícil — a veces lo correcto no es lo que más "cae bien" en el momento, y también es una lección válida.</p>`;
+  }
+
+  const logHtml = m4.log.map(n=>`<li style="margin-bottom:6px;">${n}</li>`).join("");
+
+  return `
+    <span class="eyebrow">Resultado · <span class="dif-tag ${jefe.colorClase}">${jefe.perfil}</span></span>
+    <h2>Situaciones con ${jefe.nombre} completadas</h2>
+    <div class="medidores-m4">
+      <div class="medidor-m4">Relación: ${pctRel}%
+        <div class="barra-fondo"><div class="barra-fill ${pctRel<50?'baja':''}" style="width:${pctRel}%"></div></div>
+      </div>
+      <div class="medidor-m4">Profesionalismo: ${pctProf}%
+        <div class="barra-fondo"><div class="barra-fill ${pctProf<50?'baja':''}" style="width:${pctProf}%"></div></div>
+      </div>
+    </div>
+    <p class="lead">${comentarioRel} ${comentarioProf}</p>
+    ${notaEspecial}
+    <p class="lead" style="margin-top:14px;"><strong>Clave general:</strong> ${jefe.tip}</p>
+    <p style="margin-top:14px;"><strong>Repaso de tus decisiones:</strong></p>
+    <ul class="req-list">${logHtml}</ul>
+    <button class="primary" id="reintentar-m4">Repetir con ${jefe.nombre}</button>
+    <button class="secondary" id="cambiar-jefe-m4">Elegir otro perfil</button>
+  `;
+}
+
+function renderModulo4(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(!m4.jefeId){
+    sheet.innerHTML = renderSeleccionJefeM4();
+    main.appendChild(sheet);
+    sheet.querySelectorAll(".persona-card").forEach(card=>{
+      card.querySelector(".primary").addEventListener("click", ()=>{
+        resetM4();
+        m4.jefeId = card.dataset.id;
+        render();
+      });
+    });
+    return;
+  }
+
+  const jefe = jefeActualM4();
+
+  if(m4.situacionIndex >= jefe.situaciones.length){
+    if(!m4.terminado){
+      m4.terminado = true;
+      guardarResultadoM4(jefe);
+    }
+    sheet.innerHTML = renderResultadoM4(jefe);
+    main.appendChild(sheet);
+    const btnReintentar = sheet.querySelector("#reintentar-m4");
+    if(btnReintentar) btnReintentar.addEventListener("click", ()=>{
+      const id = m4.jefeId;
+      resetM4();
+      m4.jefeId = id;
+      render();
+    });
+    const btnCambiar = sheet.querySelector("#cambiar-jefe-m4");
+    if(btnCambiar) btnCambiar.addEventListener("click", ()=>{ resetM4(); render(); });
+    return;
+  }
+
+  const situacion = jefe.situaciones[m4.situacionIndex];
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Módulo 4 · Jefes · <span class="dif-tag ${jefe.colorClase}">${jefe.perfil}</span></span>
+    <h2>${jefe.nombre} — ${jefe.rol}</h2>
+    <p class="lead">Situación ${m4.situacionIndex+1} de ${jefe.situaciones.length}. Elegí cómo responder o actuar.</p>
+    <div class="cliente-msg"><span class="quien">${jefe.nombre}, ${jefe.rol.toLowerCase()}</span>
+      ${situacion.texto}
+    </div>
+    <div class="opciones" id="opciones-m4"></div>
+  `;
+
+  main.appendChild(sheet);
+
+  const cont = sheet.querySelector("#opciones-m4");
+  situacion.opciones.forEach(op=>{
+    const b = document.createElement("button");
+    b.className = "opcion";
+    b.textContent = op.texto;
+    b.addEventListener("click", ()=> elegirOpcionM4(op));
+    cont.appendChild(b);
+  });
 }
 
 /* ============================================================
