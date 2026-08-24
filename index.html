@@ -369,6 +369,17 @@
     padding:14px 10px 26px 10px;
     background:var(--navy);
   }
+  .link-restablecer{
+    background:none;
+    border:none;
+    color:#8892a0;
+    font-family:'Courier New',monospace;
+    font-size:.68rem;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+  .link-restablecer:hover{color:var(--stamp);}
 
   @media (max-width:480px){
     nav.tabs button{font-size:.62rem; padding:9px 4px 10px 4px;}
@@ -441,7 +452,7 @@
 
 <main id="main"></main>
 
-<footer>Desarrollado por Seba Branda</footer>
+<footer>Desarrollado por Seba Branda · <button id="btn-restablecer" class="link-restablecer">Restablecer progreso</button></footer>
 
 <script>
 /* ============================================================
@@ -1841,6 +1852,25 @@ if(esIOS() && !estaInstalada()){
   btnInstalar.style.display = "none";
   mostrarBanner();
 }
+
+/* ============================================================
+   RESTABLECER PROGRESO
+   ============================================================ */
+document.getElementById("btn-restablecer").addEventListener("click", ()=>{
+  const confirmado = window.confirm("¿Restablecer todo el progreso? Se van a borrar los resultados de los 4 módulos y no se puede deshacer.");
+  if(!confirmado) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadState();
+  if(!state.mod1.personas) state.mod1.personas = {};
+  if(!state.mod4) state.mod4 = {completado:false, jefes:{}};
+  if(!state.mod4.jefes) state.mod4.jefes = {};
+  resetM1();
+  resetM2();
+  resetM3();
+  resetM4();
+  currentMod = 1;
+  render();
+});
 
 /* ============================================================
    INIT
