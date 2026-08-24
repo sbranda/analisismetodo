@@ -1,6 +1,6 @@
 {
-  "name": "Legajo N.º 1 — Simulador de Análisis de Sistemas",
-  "short_name": "Legajo Sistemas",
+  "name": "Análisis y Metodología de Sistemas",
+  "short_name": "Análisis Sistemas",
   "description": "Simulador para practicar relevamiento, elección de metodología y planificación de sprints.",
   "start_url": "./index.html",
   "scope": "./",
