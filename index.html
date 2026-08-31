@@ -65,13 +65,15 @@
   /* Folder tab navigation */
   nav.tabs{
     display:flex;
+    flex-wrap:wrap;
     gap:6px;
     max-width:900px;
     margin:0 auto;
     padding:0 8px;
   }
   nav.tabs button{
-    flex:1;
+    flex:1 1 100px;
+    min-width:0;
     background:var(--navy-soft);
     color:#c7cedb;
     border:none;
@@ -382,7 +384,8 @@
   .link-restablecer:hover{color:var(--stamp);}
 
   @media (max-width:480px){
-    nav.tabs button{font-size:.62rem; padding:9px 4px 10px 4px;}
+    nav.tabs{gap:4px; padding:0 6px;}
+    nav.tabs button{flex:1 1 78px; font-size:.6rem; padding:8px 3px 9px 3px;}
     h2{font-size:1.15rem;}
   }
 
