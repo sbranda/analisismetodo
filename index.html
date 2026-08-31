@@ -441,6 +441,7 @@
     <button data-mod="2">Módulo 2<br>Metodología <span class="stamp-mini" id="stamp2"></span></button>
     <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
     <button data-mod="4">Módulo 4<br>Jefes <span class="stamp-mini" id="stamp4"></span></button>
+    <button data-mod="5">Módulo 5<br>Diseño <span class="stamp-mini" id="stamp5"></span></button>
   </nav>
 </header>
 
@@ -469,7 +470,8 @@ function loadState(){
     mod1:{completado:false, personas:{}},
     mod2:{completado:false, score:0},
     mod3:{completado:false, score:0},
-    mod4:{completado:false, jefes:{}}
+    mod4:{completado:false, jefes:{}},
+    mod5:{completado:false, score:0}
   };
 }
 function saveState(){
@@ -479,6 +481,7 @@ let state = loadState();
 if(!state.mod1.personas) state.mod1.personas = {};
 if(!state.mod4) state.mod4 = {completado:false, jefes:{}};
 if(!state.mod4.jefes) state.mod4.jefes = {};
+if(!state.mod5) state.mod5 = {completado:false, score:0};
 
 function refreshStamps(){
   const hechosM1 = Object.values(state.mod1.personas || {}).filter(p=>p.completado).length;
@@ -487,6 +490,7 @@ function refreshStamps(){
   document.getElementById("stamp3").textContent = state.mod3.completado ? "✓" : "";
   const hechosM4 = Object.values(state.mod4.jefes || {}).filter(j=>j.completado).length;
   document.getElementById("stamp4").textContent = hechosM4>0 ? `${hechosM4}/5` : "";
+  document.getElementById("stamp5").textContent = state.mod5.completado ? "✓" : "";
 }
 
 /* ============================================================
@@ -517,6 +521,7 @@ function render(){
   if(currentMod===2) renderModulo2();
   if(currentMod===3) renderModulo3();
   if(currentMod===4) renderModulo4();
+  if(currentMod===5) renderModulo5();
 }
 
 /* ============================================================
@@ -1796,6 +1801,198 @@ function renderModulo4(){
 }
 
 /* ============================================================
+   MÓDULO 5 — DISEÑO (decisiones de diseño a partir de requerimientos)
+   ============================================================ */
+const CASOS_M5 = [
+  {
+    id:"d1", categoria:"Modelo de datos",
+    titulo:"Relación entre Pedido y Producto",
+    contexto:"Un sistema de ventas permite que un pedido incluya varios productos, y un mismo producto puede aparecer en muchos pedidos distintos.",
+    pregunta:"¿Qué tipo de relación hay que modelar entre las entidades Pedido y Producto?",
+    opciones:[
+      {texto:"Uno a uno", correcta:false, feedback:"Uno a uno implicaría que cada pedido tiene un único producto y viceversa, lo cual no es el caso acá."},
+      {texto:"Uno a muchos", correcta:false, feedback:"Uno a muchos alcanzaría si un pedido tuviera muchos productos pero cada producto solo pudiera estar en un pedido — acá el producto puede repetirse en varios pedidos."},
+      {texto:"Muchos a muchos, resuelta con una tabla intermedia (por ejemplo, DetallePedido)", correcta:true, feedback:"Correcto: como un pedido puede tener varios productos y un producto puede estar en varios pedidos, hace falta una relación muchos a muchos, que en un modelo relacional se resuelve con una tabla intermedia (DetallePedido) que además puede guardar cantidad y precio unitario."}
+    ]
+  },
+  {
+    id:"d2", categoria:"Casos de uso",
+    titulo:"Actor en un diagrama de casos de uso",
+    contexto:"En un sistema de biblioteca, un proceso automático corre todas las noches para calcular multas de préstamos vencidos, sin que ninguna persona lo ejecute manualmente.",
+    pregunta:"¿Cómo se debería representar ese proceso en el diagrama de casos de uso?",
+    opciones:[
+      {texto:"Como un actor humano llamado 'Bibliotecario'", correcta:false, feedback:"El bibliotecario no interviene en este proceso puntual; representarlo como si lo ejecutara una persona sería incorrecto."},
+      {texto:"Como un actor no humano (por ejemplo, 'Programador de tareas')", correcta:true, feedback:"Correcto: un actor no tiene que ser necesariamente una persona. Un proceso automático, temporizador o sistema externo que interactúa con el sistema también se modela como actor."},
+      {texto:"No se representa, porque no participa ningún usuario", correcta:false, feedback:"Aunque no haya un usuario humano involucrado, el proceso interactúa con el sistema y dispara un caso de uso, así que sí conviene representarlo."}
+    ]
+  },
+  {
+    id:"d3", categoria:"Normalización",
+    titulo:"Columnas repetidas en una tabla",
+    contexto:"En una tabla de Clientes se guardan las columnas cliente_id, nombre, telefono1, telefono2, telefono3, para permitir hasta tres teléfonos por cliente.",
+    pregunta:"¿Qué problema tiene este diseño, y cómo se soluciona?",
+    opciones:[
+      {texto:"No tiene ningún problema: es una forma simple de guardar varios teléfonos.", correcta:false, feedback:"Aunque es simple, esta estructura limita arbitrariamente a 3 teléfonos y deja columnas vacías cuando un cliente tiene menos; no escala bien."},
+      {texto:"Convendría crear una tabla aparte 'Telefono' vinculada a Cliente, permitiendo cualquier cantidad por cliente.", correcta:true, feedback:"Correcto: separar los teléfonos en su propia tabla, relacionada por cliente_id, evita el límite arbitrario y las columnas vacías, siguiendo el principio de normalización."},
+      {texto:"Convendría eliminar dos de los tres campos, porque un cliente no necesita más de un teléfono.", correcta:false, feedback:"Eliminar campos no resuelve el problema estructural; algunos clientes sí necesitan más de un teléfono de contacto."}
+    ]
+  },
+  {
+    id:"d4", categoria:"Arquitectura",
+    titulo:"Arquitectura para un sistema chico",
+    contexto:"Un emprendimiento familiar de indumentaria pide un sistema de stock y ventas para un solo local, sin planes de expansión a corto plazo.",
+    pregunta:"¿Qué arquitectura tiene más sentido para este caso?",
+    opciones:[
+      {texto:"Microservicios, separando stock, ventas y usuarios en servicios independientes desde el arranque.", correcta:false, feedback:"Los microservicios agregan complejidad de infraestructura y coordinación que no se justifica para un sistema chico de un solo local; suele ser sobreingeniería en este contexto."},
+      {texto:"Una aplicación monolítica simple, con una única base de datos.", correcta:true, feedback:"Correcto: para un sistema de alcance acotado y sin necesidad inmediata de escalar por separado cada parte, un monolito simple es más rápido de construir, mantener y desplegar."},
+      {texto:"Un sistema totalmente distribuido con múltiples bases de datos redundantes por región.", correcta:false, feedback:"Ese nivel de distribución responde a necesidades de alta disponibilidad geográfica que un local no tiene; encarece y complica el proyecto sin necesidad real."}
+    ]
+  },
+  {
+    id:"d5", categoria:"Interfaz",
+    titulo:"Pantalla de carga de mercadería",
+    contexto:"Hay que diseñar la pantalla donde un empleado carga el ingreso de mercadería nueva al depósito, con varios productos por vez.",
+    pregunta:"¿Qué tipo de interfaz es más adecuada para esta tarea?",
+    opciones:[
+      {texto:"Un cuestionario paso a paso (wizard), con una sola pregunta por pantalla para cada producto.", correcta:false, feedback:"Para cargar varios productos de una sola vez, un wizard de un campo por pantalla sería lento y poco práctico para una tarea repetitiva."},
+      {texto:"Una tabla editable donde se puedan agregar filas, una por producto, con sus cantidades.", correcta:true, feedback:"Correcto: una tabla editable con filas agregables es el patrón habitual para cargar múltiples ítems similares de forma rápida, típico en sistemas de depósito o facturación."},
+      {texto:"Un cuadro de texto libre donde el empleado escriba todos los productos en un párrafo.", correcta:false, feedback:"Un campo de texto libre complica la validación de datos y es propenso a errores de formato; no es apropiado para carga estructurada de stock."}
+    ]
+  },
+  {
+    id:"d6", categoria:"Diagrama de clases",
+    titulo:"Herencia entre tipos de vehículo",
+    contexto:"En un sistema de transporte hay Auto, Camioneta y Camión, todos con patente, marca y capacidad de carga, pero el Camión además necesita datos de habilitación para cargas peligrosas.",
+    pregunta:"¿Cómo conviene modelar esto en un diagrama de clases?",
+    opciones:[
+      {texto:"Una clase 'Vehículo' con los atributos comunes, y 'Camión' como subclase que hereda de Vehículo y agrega los datos de habilitación.", correcta:true, feedback:"Correcto: cuando varias entidades comparten atributos y una de ellas agrega comportamiento o datos propios, la herencia (Vehículo → Camión) es el patrón adecuado."},
+      {texto:"Tres clases totalmente independientes, repitiendo los atributos comunes en cada una.", correcta:false, feedback:"Repetir los mismos atributos en clases independientes genera duplicación y dificulta el mantenimiento si algo común cambia."},
+      {texto:"Una sola clase 'Vehículo' con un campo booleano 'es_camión' y todos los atributos de todos los tipos juntos.", correcta:false, feedback:"Esto genera atributos vacíos o sin sentido según el tipo de vehículo, y complica la lógica en vez de modelar bien las diferencias."}
+    ]
+  },
+  {
+    id:"d7", categoria:"Diseño de API",
+    titulo:"Método HTTP para actualizar un precio",
+    contexto:"Hay que diseñar el endpoint de una API para actualizar el precio de un producto existente.",
+    pregunta:"¿Qué método HTTP es más adecuado para esta acción?",
+    opciones:[
+      {texto:"GET", correcta:false, feedback:"GET está pensado para consultar información, no para modificarla; usarlo para actualizar datos rompe la convención y puede tener efectos no deseados (por ejemplo, con cachés)."},
+      {texto:"PUT o PATCH", correcta:true, feedback:"Correcto: PUT (para reemplazar el recurso completo) o PATCH (para una actualización parcial) son los métodos pensados específicamente para modificar un recurso existente."},
+      {texto:"DELETE", correcta:false, feedback:"DELETE está pensado para eliminar un recurso, no para modificar uno de sus campos."}
+    ]
+  },
+  {
+    id:"d8", categoria:"Seguridad",
+    titulo:"Cómo guardar contraseñas",
+    contexto:"Al diseñar la tabla de Usuarios de un sistema, hay que decidir cómo guardar la contraseña de cada uno.",
+    pregunta:"¿Cuál es la decisión de diseño correcta?",
+    opciones:[
+      {texto:"Guardarla en texto plano, para poder mostrársela al usuario si la olvida.", correcta:false, feedback:"Guardar contraseñas en texto plano es un riesgo de seguridad grave: si la base de datos se filtra, todas las contraseñas quedan expuestas."},
+      {texto:"Guardar un hash de la contraseña (con salt), y nunca la contraseña original.", correcta:true, feedback:"Correcto: se debe guardar un hash con salt, de forma que ni siquiera el propio sistema pueda recuperar la contraseña original, solo verificar si una entrada coincide."},
+      {texto:"Guardarla encriptada con una clave que se pueda desencriptar fácilmente para mostrarla cuando haga falta.", correcta:false, feedback:"Si la contraseña se puede desencriptar, sigue siendo vulnerable ante quien tenga acceso a la clave; lo correcto es un hash irreversible, no una encriptación reversible."}
+    ]
+  }
+];
+
+let m5 = {indice:0, respuestas:[], mostrandoFeedback:false};
+
+function resetM5(){
+  m5 = {indice:0, respuestas:[], mostrandoFeedback:false};
+}
+
+function elegirOpcionM5(op){
+  m5.respuestas.push({casoId: CASOS_M5[m5.indice].id, correcta: op.correcta, feedback: op.feedback, textoElegido: op.texto});
+  m5.mostrandoFeedback = true;
+  render();
+}
+
+function siguienteM5(){
+  m5.indice++;
+  m5.mostrandoFeedback = false;
+  render();
+}
+
+function renderResultadoM5(){
+  const aciertos = m5.respuestas.filter(r=>r.correcta).length;
+  const total = CASOS_M5.length;
+  const score = Math.round((aciertos/total)*100);
+  state.mod5.completado = true;
+  state.mod5.score = score;
+  saveState();
+
+  let comentario;
+  if(score>=80) comentario = "Muy buen criterio de diseño: las decisiones que tomaste (modelo de datos, arquitectura, interfaz, seguridad) siguen buenas prácticas reconocidas, no solo lo que 'funciona a los ponchazos'.";
+  else if(score>=50) comentario = "Criterio parcial: acertaste varias decisiones, pero conviene repasar los conceptos de las que fallaste — son la base de un diseño sólido antes de escribir la primera línea de código.";
+  else comentario = "Todavía falta afianzar criterios de diseño. Repasá normalización, modelado de relaciones, y buenas prácticas de arquitectura y seguridad antes de avanzar a la etapa de desarrollo.";
+
+  const revisionHtml = m5.respuestas.map((r,i)=>{
+    const caso = CASOS_M5.find(c=>c.id===r.casoId);
+    return `<li style="margin-bottom:10px;">
+      <strong>${i+1}. ${caso.titulo}:</strong> ${r.correcta ? '✅' : '❌'} elegiste "${r.textoElegido}".<br>
+      <span style="font-size:.85rem; color:var(--ink-soft);">${r.feedback}</span>
+    </li>`;
+  }).join("");
+
+  return `
+    <span class="eyebrow">Resultado del módulo</span>
+    <h2>Decisiones de diseño correctas: ${aciertos} de ${total} (${score}%)</h2>
+    <div class="sello">${score>=70 ? "Criterio de Diseño Sólido" : "A Revisar"}</div>
+    <p class="lead">${comentario}</p>
+    <p style="margin-top:14px;"><strong>Repaso de tus respuestas:</strong></p>
+    <ul class="req-list">${revisionHtml}</ul>
+    <button class="primary" id="reintentar-m5">Repetir módulo</button>
+  `;
+}
+
+function renderModulo5(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(m5.indice >= CASOS_M5.length){
+    sheet.innerHTML = renderResultadoM5();
+    main.appendChild(sheet);
+    const btn = sheet.querySelector("#reintentar-m5");
+    if(btn) btn.addEventListener("click", ()=>{ resetM5(); render(); });
+    return;
+  }
+
+  const caso = CASOS_M5[m5.indice];
+
+  if(m5.mostrandoFeedback){
+    const ultima = m5.respuestas[m5.respuestas.length-1];
+    sheet.innerHTML = `
+      <span class="eyebrow">Caso ${m5.indice+1} de ${CASOS_M5.length} · ${caso.categoria} · Devolución</span>
+      <h2>${ultima.correcta ? '✅ Decisión acertada' : '❌ Conviene repensarlo'}</h2>
+      <p><strong>Elegiste:</strong> ${ultima.textoElegido}</p>
+      <p class="lead">${ultima.feedback}</p>
+      <button class="primary" id="siguiente-m5">Siguiente caso</button>
+    `;
+    main.appendChild(sheet);
+    sheet.querySelector("#siguiente-m5").addEventListener("click", siguienteM5);
+    return;
+  }
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Caso ${m5.indice+1} de ${CASOS_M5.length} · ${caso.categoria}</span>
+    <h2>${caso.titulo}</h2>
+    <p class="lead">${caso.contexto}</p>
+    <p><strong>${caso.pregunta}</strong></p>
+    <div class="opciones" id="opciones-m5"></div>
+  `;
+
+  main.appendChild(sheet);
+
+  const cont = sheet.querySelector("#opciones-m5");
+  caso.opciones.forEach(op=>{
+    const b = document.createElement("button");
+    b.className = "opcion";
+    b.textContent = op.texto;
+    b.addEventListener("click", ()=> elegirOpcionM5(op));
+    cont.appendChild(b);
+  });
+}
+
+/* ============================================================
    INSTALACIÓN DE LA PWA
    ============================================================ */
 const INSTALL_DISMISSED_KEY = "legajo-sistemas-install-dismissed";
@@ -1864,10 +2061,12 @@ document.getElementById("btn-restablecer").addEventListener("click", ()=>{
   if(!state.mod1.personas) state.mod1.personas = {};
   if(!state.mod4) state.mod4 = {completado:false, jefes:{}};
   if(!state.mod4.jefes) state.mod4.jefes = {};
+  if(!state.mod5) state.mod5 = {completado:false, score:0};
   resetM1();
   resetM2();
   resetM3();
   resetM4();
+  resetM5();
   currentMod = 1;
   render();
 });
