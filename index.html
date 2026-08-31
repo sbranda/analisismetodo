@@ -440,8 +440,11 @@
     <button data-mod="1" class="active">Módulo 1<br>Relevamiento <span class="stamp-mini" id="stamp1"></span></button>
     <button data-mod="2">Módulo 2<br>Metodología <span class="stamp-mini" id="stamp2"></span></button>
     <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
-    <button data-mod="4">Módulo 4<br>Jefes <span class="stamp-mini" id="stamp4"></span></button>
-    <button data-mod="5">Módulo 5<br>Diseño <span class="stamp-mini" id="stamp5"></span></button>
+    <button data-mod="5">Módulo 4<br>Diseño <span class="stamp-mini" id="stamp5"></span></button>
+    <button data-mod="6">Módulo 5<br>Testing <span class="stamp-mini" id="stamp6"></span></button>
+    <button data-mod="7">Módulo 6<br>Despliegue <span class="stamp-mini" id="stamp7"></span></button>
+    <button data-mod="4">Extra<br>Jefes <span class="stamp-mini" id="stamp4"></span></button>
+    <button data-mod="8">Extra<br>Problemas <span class="stamp-mini" id="stamp8"></span></button>
   </nav>
 </header>
 
@@ -471,7 +474,10 @@ function loadState(){
     mod2:{completado:false, score:0},
     mod3:{completado:false, score:0},
     mod4:{completado:false, jefes:{}},
-    mod5:{completado:false, score:0}
+    mod5:{completado:false, score:0},
+    mod6:{completado:false, score:0},
+    mod7:{completado:false, score:0},
+    mod8:{completado:false, score:0}
   };
 }
 function saveState(){
@@ -482,6 +488,9 @@ if(!state.mod1.personas) state.mod1.personas = {};
 if(!state.mod4) state.mod4 = {completado:false, jefes:{}};
 if(!state.mod4.jefes) state.mod4.jefes = {};
 if(!state.mod5) state.mod5 = {completado:false, score:0};
+if(!state.mod6) state.mod6 = {completado:false, score:0};
+if(!state.mod7) state.mod7 = {completado:false, score:0};
+if(!state.mod8) state.mod8 = {completado:false, score:0};
 
 function refreshStamps(){
   const hechosM1 = Object.values(state.mod1.personas || {}).filter(p=>p.completado).length;
@@ -491,6 +500,9 @@ function refreshStamps(){
   const hechosM4 = Object.values(state.mod4.jefes || {}).filter(j=>j.completado).length;
   document.getElementById("stamp4").textContent = hechosM4>0 ? `${hechosM4}/5` : "";
   document.getElementById("stamp5").textContent = state.mod5.completado ? "✓" : "";
+  document.getElementById("stamp6").textContent = state.mod6.completado ? "✓" : "";
+  document.getElementById("stamp7").textContent = state.mod7.completado ? "✓" : "";
+  document.getElementById("stamp8").textContent = state.mod8.completado ? "✓" : "";
 }
 
 /* ============================================================
@@ -522,6 +534,9 @@ function render(){
   if(currentMod===3) renderModulo3();
   if(currentMod===4) renderModulo4();
   if(currentMod===5) renderModulo5();
+  if(currentMod===6) renderModulo6();
+  if(currentMod===7) renderModulo7();
+  if(currentMod===8) renderModulo8();
 }
 
 /* ============================================================
@@ -1687,7 +1702,7 @@ function renderSeleccionJefeM4(){
   }).join("");
 
   return `
-    <span class="eyebrow">Módulo 4 · Jefes</span>
+    <span class="eyebrow">Extra · Jefes</span>
     <h2>Elegí con qué jefe/a vas a practicar</h2>
     <p class="lead">Cada perfil plantea situaciones típicas del día a día laboral. Tus decisiones afectan dos cosas por separado: cómo queda la <strong>relación</strong> con esa persona y qué tan <strong>profesional</strong> fue tu manera de manejarlo — no siempre van de la mano. Llevás ${progreso} de ${JEFES_M4.length} perfiles completos.</p>
     <div class="personas-grid">${cards}</div>
@@ -1779,7 +1794,7 @@ function renderModulo4(){
   const situacion = jefe.situaciones[m4.situacionIndex];
 
   sheet.innerHTML = `
-    <span class="eyebrow">Módulo 4 · Jefes · <span class="dif-tag ${jefe.colorClase}">${jefe.perfil}</span></span>
+    <span class="eyebrow">Extra · Jefes · <span class="dif-tag ${jefe.colorClase}">${jefe.perfil}</span></span>
     <h2>${jefe.nombre} — ${jefe.rol}</h2>
     <p class="lead">Situación ${m4.situacionIndex+1} de ${jefe.situaciones.length}. Elegí cómo responder o actuar.</p>
     <div class="cliente-msg"><span class="quien">${jefe.nombre}, ${jefe.rol.toLowerCase()}</span>
@@ -1993,6 +2008,582 @@ function renderModulo5(){
 }
 
 /* ============================================================
+   MÓDULO 6 — TESTING (encontrar bugs y diseñar casos de prueba)
+   ============================================================ */
+const CASOS_M6 = [
+  {
+    id:"t1", categoria:"Valores límite",
+    titulo:"Valores límite en un campo de edad",
+    contexto:"Un formulario de registro solo permite inscribir usuarios de 18 a 65 años. Estás diseñando los casos de prueba para validar ese campo.",
+    pregunta:"¿Cuál de estos conjuntos de valores aplica mejor la técnica de valores límite (boundary testing)?",
+    opciones:[
+      {texto:"10, 30, 90", correcta:false, feedback:"Estos valores están lejos de los límites (18 y 65); prueban casos intermedios y extremos alejados, pero no los bordes exactos donde suelen aparecer errores de código."},
+      {texto:"17, 18, 65, 66", correcta:true, feedback:"Correcto: probar justo antes y después de cada límite (17/18 y 65/66) es la esencia del testing de valores límite, donde suelen esconderse errores de comparación (< en vez de <=, por ejemplo)."},
+      {texto:"18, 65", correcta:false, feedback:"Probar solo los valores válidos en el límite no alcanza; falta comprobar que los valores inválidos justo fuera del rango (17 y 66) sean rechazados correctamente."}
+    ]
+  },
+  {
+    id:"t2", categoria:"Clases de equivalencia",
+    titulo:"Clases de equivalencia en costos de envío",
+    contexto:"Un sistema de envíos calcula el costo según el peso del paquete: hasta 1kg cuesta $500, de 1kg a 5kg cuesta $900, y más de 5kg cuesta $1500.",
+    pregunta:"¿Cuántas clases de equivalencia como mínimo hay que identificar para probar esta regla?",
+    opciones:[
+      {texto:"Una sola, probando cualquier peso.", correcta:false, feedback:"Un solo valor no cubre las distintas reglas de precio; hay comportamientos diferentes según el rango de peso."},
+      {texto:"Tres: hasta 1kg, entre 1kg y 5kg, y más de 5kg.", correcta:true, feedback:"Correcto: cada rango con una regla de precio distinta es una clase de equivalencia diferente, y conviene probar al menos un valor representativo de cada una."},
+      {texto:"Tantas clases como kilos existan, probando cada valor posible de peso.", correcta:false, feedback:"Probar cada valor posible es innecesario; la técnica de clases de equivalencia busca justamente reducir la cantidad de casos agrupando valores que se comportan igual."}
+    ]
+  },
+  {
+    id:"t3", categoria:"Tipos de prueba",
+    titulo:"Prueba de una función aislada",
+    contexto:"Un desarrollador escribe una función 'calcularDescuento()' de forma aislada, sin conectarla a la base de datos ni a otras funciones, y verifica que devuelva el valor esperado para distintos casos.",
+    pregunta:"¿Qué tipo de prueba es esta?",
+    opciones:[
+      {texto:"Prueba de integración", correcta:false, feedback:"Una prueba de integración evalúa cómo interactúan varios componentes entre sí (por ejemplo, la función con la base de datos); acá se prueba una función aislada."},
+      {texto:"Prueba unitaria", correcta:true, feedback:"Correcto: probar una función o unidad de código de forma aislada, sin dependencias externas, es una prueba unitaria."},
+      {texto:"Prueba de aceptación de usuario", correcta:false, feedback:"Una prueba de aceptación la realiza el usuario final validando que el sistema cumple sus necesidades de negocio, no un desarrollador probando una función aislada."}
+    ]
+  },
+  {
+    id:"t4", categoria:"Encontrar el bug",
+    titulo:"Envío gratis que no se aplica",
+    contexto:"Un e-commerce tiene esta regla: 'si el total de la compra es mayor a $10000, el envío es gratis'. Un cliente compró exactamente $10000 y le cobraron el envío igual.",
+    pregunta:"¿Cuál es la causa más probable del bug?",
+    opciones:[
+      {texto:"El sistema de pagos está fallando.", correcta:false, feedback:"El problema descripto no tiene que ver con el pago en sí, sino con la condición que decide si el envío es gratis."},
+      {texto:"La condición usa '>' (mayor) en vez de '>=' (mayor o igual), dejando afuera el valor exacto de $10000.", correcta:true, feedback:"Correcto: si la regla de negocio es '$10000 o más' pero el código usa '>' en vez de '>=', el valor exacto del límite queda mal cubierto — un clásico error de límite (off-by-one)."},
+      {texto:"El cliente ingresó mal su dirección de envío.", correcta:false, feedback:"El bug descripto es sobre el cálculo del costo de envío según el monto, no sobre datos de dirección."}
+    ]
+  },
+  {
+    id:"t5", categoria:"Caja negra / caja blanca",
+    titulo:"Probar el login desde afuera",
+    contexto:"Un tester prueba un sistema de login ingresando distintas combinaciones de usuario y contraseña desde la pantalla, sin mirar ni conocer el código fuente.",
+    pregunta:"¿Qué técnica de testing está aplicando?",
+    opciones:[
+      {texto:"Caja blanca, porque conoce la lógica interna del sistema.", correcta:false, feedback:"La caja blanca requiere conocer y basarse en la estructura interna del código, que en este caso el tester no está mirando."},
+      {texto:"Caja negra, porque prueba el sistema desde afuera, en base a sus entradas y salidas esperadas.", correcta:true, feedback:"Correcto: probar el sistema como una 'caja cerrada', sin conocer su implementación interna, evaluando solo entradas y salidas, es testing de caja negra."},
+      {texto:"Prueba de regresión, porque repite pruebas anteriores.", correcta:false, feedback:"No se menciona que esté repitiendo pruebas de una versión anterior tras un cambio; eso sería regresión, pero acá simplemente está probando el login por primera vez."}
+    ]
+  },
+  {
+    id:"t6", categoria:"Regresión",
+    titulo:"Corrección de un bug en facturación",
+    contexto:"Se corrigió un bug en el módulo de facturación de un sistema. Antes de lanzar la nueva versión, el equipo quiere asegurarse de que esa corrección no haya roto ninguna otra funcionalidad que antes andaba bien.",
+    pregunta:"¿Qué tipo de prueba corresponde hacer en este momento?",
+    opciones:[
+      {texto:"Prueba de regresión, ejecutando de nuevo un conjunto de pruebas ya existentes sobre el sistema.", correcta:true, feedback:"Correcto: la prueba de regresión busca confirmar que un cambio (como una corrección de bug) no generó nuevos problemas en funcionalidades que antes funcionaban bien."},
+      {texto:"Prueba exploratoria, sin ningún plan ni casos definidos.", correcta:false, feedback:"La exploratoria puede ser útil en otros momentos, pero acá lo prioritario es confirmar de forma sistemática que nada se rompió, algo que la regresión cubre mejor."},
+      {texto:"No hace falta probar de nuevo, alcanza con revisar el código corregido.", correcta:false, feedback:"Revisar el código no reemplaza probarlo en ejecución; un cambio en un módulo puede afectar a otros de formas no evidentes con solo leer el código."}
+    ]
+  },
+  {
+    id:"t7", categoria:"Cobertura de casos",
+    titulo:"Caso de prueba faltante en un email",
+    contexto:"Un formulario de registro pide un email. El equipo escribió casos de prueba para: email válido, campo vacío, y email sin '@'.",
+    pregunta:"¿Qué caso de prueba importante están dejando afuera?",
+    opciones:[
+      {texto:"Probar con un nombre de usuario muy largo.", correcta:false, feedback:"El campo bajo prueba es el email, no el nombre de usuario; ese caso pertenece a otro campo."},
+      {texto:"Probar con un formato inválido que sí tenga '@' (por ejemplo, 'usuario@' o 'usuario@dominio' sin extensión).", correcta:true, feedback:"Correcto: falta cubrir formatos inválidos que sí contienen '@' pero están mal formados de otras maneras, ya que la sola presencia de '@' no garantiza un email válido."},
+      {texto:"Probar que el botón de enviar tenga el color correcto.", correcta:false, feedback:"El color del botón es una cuestión visual, no relacionada con la validación funcional del campo email."}
+    ]
+  },
+  {
+    id:"t8", categoria:"Prioridad de bugs",
+    titulo:"Qué corregir primero",
+    contexto:"Durante el testing de un sistema bancario aparecen dos problemas: (A) un botón de 'Ayuda' que no cambia de color al pasar el mouse, y (B) una transferencia de dinero que a veces descuenta el doble del monto ingresado.",
+    pregunta:"¿Cuál debería priorizarse para corregir antes del lanzamiento?",
+    opciones:[
+      {texto:"El botón de Ayuda, porque afecta la experiencia visual del usuario.", correcta:false, feedback:"Es un problema menor, cosmético, que no afecta el funcionamiento ni la seguridad del dinero de los usuarios."},
+      {texto:"La transferencia que descuenta el doble, porque implica pérdida de dinero real para los usuarios.", correcta:true, feedback:"Correcto: un bug que afecta directamente el dinero de los usuarios es crítico y debe priorizarse muy por encima de un problema visual menor."},
+      {texto:"Ambos tienen la misma prioridad porque los dos son bugs encontrados en testing.", correcta:false, feedback:"No todos los bugs tienen el mismo impacto; priorizar según severidad (funcional/económico vs. cosmético) es clave en testing."}
+    ]
+  }
+];
+
+let m6 = {indice:0, respuestas:[], mostrandoFeedback:false};
+
+function resetM6(){
+  m6 = {indice:0, respuestas:[], mostrandoFeedback:false};
+}
+
+function elegirOpcionM6(op){
+  m6.respuestas.push({casoId: CASOS_M6[m6.indice].id, correcta: op.correcta, feedback: op.feedback, textoElegido: op.texto});
+  m6.mostrandoFeedback = true;
+  render();
+}
+
+function siguienteM6(){
+  m6.indice++;
+  m6.mostrandoFeedback = false;
+  render();
+}
+
+function renderResultadoM6(){
+  const aciertos = m6.respuestas.filter(r=>r.correcta).length;
+  const total = CASOS_M6.length;
+  const score = Math.round((aciertos/total)*100);
+  state.mod6.completado = true;
+  state.mod6.score = score;
+  saveState();
+
+  let comentario;
+  if(score>=80) comentario = "Muy buen criterio de testing: sabés distinguir técnicas (valores límite, clases de equivalencia, caja negra/blanca) y priorizar bugs según su impacto real.";
+  else if(score>=50) comentario = "Criterio parcial: identificaste bien algunos conceptos, pero conviene repasar las técnicas donde fallaste — son las que evitan que un bug importante pase desapercibido.";
+  else comentario = "Todavía falta afianzar criterios de testing. Repasá valores límite, clases de equivalencia, y cómo priorizar bugs según su severidad antes de avanzar a la etapa de implementación.";
+
+  const revisionHtml = m6.respuestas.map((r,i)=>{
+    const caso = CASOS_M6.find(c=>c.id===r.casoId);
+    return `<li style="margin-bottom:10px;">
+      <strong>${i+1}. ${caso.titulo}:</strong> ${r.correcta ? '✅' : '❌'} elegiste "${r.textoElegido}".<br>
+      <span style="font-size:.85rem; color:var(--ink-soft);">${r.feedback}</span>
+    </li>`;
+  }).join("");
+
+  return `
+    <span class="eyebrow">Resultado del módulo</span>
+    <h2>Casos de testing correctos: ${aciertos} de ${total} (${score}%)</h2>
+    <div class="sello">${score>=70 ? "Criterio de Testing Sólido" : "A Revisar"}</div>
+    <p class="lead">${comentario}</p>
+    <p style="margin-top:14px;"><strong>Repaso de tus respuestas:</strong></p>
+    <ul class="req-list">${revisionHtml}</ul>
+    <button class="primary" id="reintentar-m6">Repetir módulo</button>
+  `;
+}
+
+function renderModulo6(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(m6.indice >= CASOS_M6.length){
+    sheet.innerHTML = renderResultadoM6();
+    main.appendChild(sheet);
+    const btn = sheet.querySelector("#reintentar-m6");
+    if(btn) btn.addEventListener("click", ()=>{ resetM6(); render(); });
+    return;
+  }
+
+  const caso = CASOS_M6[m6.indice];
+
+  if(m6.mostrandoFeedback){
+    const ultima = m6.respuestas[m6.respuestas.length-1];
+    sheet.innerHTML = `
+      <span class="eyebrow">Caso ${m6.indice+1} de ${CASOS_M6.length} · ${caso.categoria} · Devolución</span>
+      <h2>${ultima.correcta ? '✅ Diagnóstico acertado' : '❌ Conviene repensarlo'}</h2>
+      <p><strong>Elegiste:</strong> ${ultima.textoElegido}</p>
+      <p class="lead">${ultima.feedback}</p>
+      <button class="primary" id="siguiente-m6">Siguiente caso</button>
+    `;
+    main.appendChild(sheet);
+    sheet.querySelector("#siguiente-m6").addEventListener("click", siguienteM6);
+    return;
+  }
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Caso ${m6.indice+1} de ${CASOS_M6.length} · ${caso.categoria}</span>
+    <h2>${caso.titulo}</h2>
+    <p class="lead">${caso.contexto}</p>
+    <p><strong>${caso.pregunta}</strong></p>
+    <div class="opciones" id="opciones-m6"></div>
+  `;
+
+  main.appendChild(sheet);
+
+  const cont = sheet.querySelector("#opciones-m6");
+  caso.opciones.forEach(op=>{
+    const b = document.createElement("button");
+    b.className = "opcion";
+    b.textContent = op.texto;
+    b.addEventListener("click", ()=> elegirOpcionM6(op));
+    cont.appendChild(b);
+  });
+}
+
+/* ============================================================
+   MÓDULO 7 — IMPLEMENTACIÓN / DESPLIEGUE (checklist de puesta en producción)
+   ============================================================ */
+const CASOS_M7 = [
+  {
+    id:"e1", categoria:"Backup",
+    titulo:"Antes de migrar la base de datos",
+    contexto:"Vas a desplegar una nueva versión del sistema que incluye cambios en la estructura de la base de datos (una migración).",
+    pregunta:"¿Qué es imprescindible hacer antes de aplicar la migración en producción?",
+    opciones:[
+      {texto:"Aplicar la migración directamente, ya que fue probada en el ambiente de desarrollo.", correcta:false, feedback:"Que haya funcionado en desarrollo no garantiza que los datos reales de producción se comporten igual; falta un paso de seguridad antes de tocar datos reales."},
+      {texto:"Hacer un backup completo de la base de datos de producción antes de aplicar cualquier cambio.", correcta:true, feedback:"Correcto: un backup previo permite restaurar el estado anterior si algo sale mal durante la migración, algo que probar en desarrollo no puede garantizar por sí solo."},
+      {texto:"Avisar a los usuarios que el sistema puede fallar, por las dudas.", correcta:false, feedback:"Avisar a los usuarios no reemplaza tener una copia de seguridad real de los datos; son dos cosas distintas, y el backup es la protección concreta."}
+    ]
+  },
+  {
+    id:"e2", categoria:"Plan de rollback",
+    titulo:"El despliegue sale mal",
+    contexto:"Después de desplegar una nueva versión, empiezan a reportarse errores críticos que afectan a todos los usuarios.",
+    pregunta:"¿Qué debería tener preparado el equipo, desde antes de desplegar, para reaccionar rápido en este momento?",
+    opciones:[
+      {texto:"Un plan de rollback definido de antemano, para volver rápido a la versión anterior estable.", correcta:true, feedback:"Correcto: tener un plan de rollback preparado (y probado) permite revertir rápidamente a la última versión estable mientras se investiga el problema con calma."},
+      {texto:"Nada en particular, porque los errores se solucionan sobre la marcha una vez que aparecen.", correcta:false, feedback:"Improvisar una solución en medio de una crisis de producción, con usuarios afectados, es mucho más riesgoso que tener un plan preparado de antemano."},
+      {texto:"Un comunicado de prensa explicando la situación a los medios.", correcta:false, feedback:"Puede eventualmente ser necesario en crisis muy grandes, pero no es la prioridad técnica inmediata frente a un despliegue fallido."}
+    ]
+  },
+  {
+    id:"e3", categoria:"Ambiente de staging",
+    titulo:"Probar antes de producción",
+    contexto:"El equipo terminó de desarrollar una nueva funcionalidad y la probó únicamente en las computadoras de los propios desarrolladores.",
+    pregunta:"¿Qué paso conviene dar antes de desplegar directamente a producción?",
+    opciones:[
+      {texto:"Desplegar directo a producción, ya que los desarrolladores ya probaron que funciona.", correcta:false, feedback:"El entorno de cada desarrollador suele diferir de producción (versiones, configuración, datos); esas diferencias pueden esconder errores que solo aparecen en un ambiente más real."},
+      {texto:"Desplegar primero en un ambiente de staging/pre-producción, lo más parecido posible a producción, y validar ahí antes del pase final.", correcta:true, feedback:"Correcto: un ambiente de staging que imite a producción permite detectar problemas de configuración, datos o integración antes de afectar a usuarios reales."},
+      {texto:"Saltar directo a producción pero mostrarle la nueva función a un solo usuario al azar.", correcta:false, feedback:"Probar con un usuario real en producción sin haber pasado por un ambiente de prueba lo expone a fallos que podrían haberse evitado antes."}
+    ]
+  },
+  {
+    id:"e4", categoria:"Capacitación a usuarios",
+    titulo:"Cambio grande en la interfaz",
+    contexto:"El sistema va a lanzar un rediseño importante de la pantalla principal, cambiando la ubicación de varias funciones que los usuarios usan a diario.",
+    pregunta:"¿Qué acción ayuda a que el lanzamiento no genere caos entre los usuarios?",
+    opciones:[
+      {texto:"No avisar nada, para que los usuarios descubran el cambio por su cuenta.", correcta:false, feedback:"Un cambio grande sin aviso previo suele generar confusión, quejas y un aumento de consultas de soporte el día del lanzamiento."},
+      {texto:"Comunicar el cambio con anticipación y ofrecer una guía rápida o capacitación breve sobre la nueva interfaz.", correcta:true, feedback:"Correcto: anticipar el cambio y dar una guía o capacitación reduce la fricción y la cantidad de consultas de soporte tras el lanzamiento."},
+      {texto:"Lanzar el cambio un viernes a la tarde, para que se acostumbren durante el fin de semana.", correcta:false, feedback:"Lanzar cambios grandes justo antes de que el equipo técnico no esté disponible (fin de semana) es mala práctica: si algo falla, hay menos gente para reaccionar rápido."}
+    ]
+  },
+  {
+    id:"e5", categoria:"Ventana de mantenimiento",
+    titulo:"Cuándo desplegar",
+    contexto:"Un sistema de e-commerce necesita aplicar una actualización que va a requerir 20 minutos de inactividad total.",
+    pregunta:"¿Cuándo conviene programar ese despliegue?",
+    opciones:[
+      {texto:"Durante el horario de mayor cantidad de ventas del día, para que se note menos.", correcta:false, feedback:"Justo al revés: desplegar en el horario de mayor tráfico maximiza el impacto negativo de la inactividad sobre las ventas."},
+      {texto:"En un horario de bajo tráfico (por ejemplo, de madrugada), avisando previamente a los usuarios si es posible.", correcta:true, feedback:"Correcto: programar la ventana de mantenimiento en horarios de bajo uso minimiza el impacto en los usuarios, y avisar con anticipación ayuda a que no los tome por sorpresa."},
+      {texto:"En cualquier momento, ya que 20 minutos es un tiempo demasiado corto como para planificarlo.", correcta:false, feedback:"Aunque parezca poco tiempo, 20 minutos de caída en el momento equivocado puede significar una pérdida importante de ventas o confianza."}
+    ]
+  },
+  {
+    id:"e6", categoria:"Migración de datos",
+    titulo:"Migrar usuarios a un nuevo sistema",
+    contexto:"Una empresa va a reemplazar su sistema viejo de facturación por uno nuevo, migrando todos los datos históricos de clientes y facturas.",
+    pregunta:"¿Qué es fundamental validar después de migrar los datos, antes de dar de baja el sistema viejo?",
+    opciones:[
+      {texto:"Que la cantidad de registros migrados coincida con la del sistema viejo, y que los datos clave (montos, fechas, clientes) sean consistentes.", correcta:true, feedback:"Correcto: validar la integridad de los datos migrados (cantidades, consistencia de campos clave) es imprescindible antes de confiar en el nuevo sistema y apagar el viejo."},
+      {texto:"Que el sistema nuevo tenga un diseño visual más moderno que el anterior.", correcta:false, feedback:"El aspecto visual no garantiza que los datos se hayan migrado correctamente; son dos cuestiones completamente distintas."},
+      {texto:"Nada en particular: si la migración corrió sin mostrar errores en pantalla, ya se puede confiar en el resultado.", correcta:false, feedback:"Que el proceso no haya mostrado errores visibles no garantiza que los datos sean completos o correctos; hace falta una validación explícita de los datos migrados."}
+    ]
+  },
+  {
+    id:"e7", categoria:"Comunicación",
+    titulo:"Aviso de mantenimiento",
+    contexto:"El equipo va a hacer un mantenimiento programado que dejará el sistema fuera de servicio por dos horas, un sábado a la madrugada.",
+    pregunta:"¿Cuál es la mejor práctica de comunicación en este caso?",
+    opciones:[
+      {texto:"No decir nada, ya que es de madrugada y probablemente pocos usuarios lo noten.", correcta:false, feedback:"Aunque el horario sea de bajo uso, algunos usuarios sí pueden verse afectados; avisar con anticipación evita sorpresas y reclamos innecesarios."},
+      {texto:"Avisar con anticipación por los canales habituales (mail, banner en el sistema, redes) indicando fecha, hora y duración estimada.", correcta:true, feedback:"Correcto: comunicar con anticipación fecha, hora y duración estimada del mantenimiento es una buena práctica que genera confianza y reduce reclamos."},
+      {texto:"Avisar recién cuando el sistema ya está caído, explicando por qué.", correcta:false, feedback:"Avisar solo después de que el sistema ya está fuera de servicio no le da al usuario la posibilidad de planificarse; el aviso debe ser previo."}
+    ]
+  },
+  {
+    id:"e8", categoria:"Monitoreo post-despliegue",
+    titulo:"Después de lanzar",
+    contexto:"El equipo acaba de desplegar una nueva versión a producción sin ningún problema evidente en el momento del despliegue.",
+    pregunta:"¿Qué conviene hacer inmediatamente después?",
+    opciones:[
+      {texto:"Dar por cerrado el trabajo y desconectarse, ya que el despliegue no mostró errores.", correcta:false, feedback:"Que no haya errores visibles al momento del despliegue no garantiza que todo funcione bien bajo uso real; algunos problemas aparecen recién con tráfico real."},
+      {texto:"Monitorear activamente logs, métricas de error y el comportamiento del sistema durante un tiempo después del despliegue.", correcta:true, feedback:"Correcto: monitorear de cerca el sistema durante un período después del despliegue permite detectar problemas tempranamente, antes de que escalen o afecten a muchos usuarios."},
+      {texto:"Esperar a que los usuarios reporten problemas por su cuenta antes de revisar algo.", correcta:false, feedback:"Esperar reportes pasivos de los usuarios retrasa la detección de problemas que un monitoreo activo detectaría mucho antes."}
+    ]
+  }
+];
+
+let m7 = {indice:0, respuestas:[], mostrandoFeedback:false};
+
+function resetM7(){
+  m7 = {indice:0, respuestas:[], mostrandoFeedback:false};
+}
+
+function elegirOpcionM7(op){
+  m7.respuestas.push({casoId: CASOS_M7[m7.indice].id, correcta: op.correcta, feedback: op.feedback, textoElegido: op.texto});
+  m7.mostrandoFeedback = true;
+  render();
+}
+
+function siguienteM7(){
+  m7.indice++;
+  m7.mostrandoFeedback = false;
+  render();
+}
+
+function renderResultadoM7(){
+  const aciertos = m7.respuestas.filter(r=>r.correcta).length;
+  const total = CASOS_M7.length;
+  const score = Math.round((aciertos/total)*100);
+  state.mod7.completado = true;
+  state.mod7.score = score;
+  saveState();
+
+  let comentario;
+  if(score>=80) comentario = "Muy buen criterio de despliegue: tenés en cuenta backups, planes de rollback, ambientes de prueba y comunicación, no solo 'subir el código y listo'.";
+  else if(score>=50) comentario = "Criterio parcial: acertaste varias prácticas, pero conviene repasar las que fallaste — son justamente las que evitan que un despliegue se convierta en una crisis.";
+  else comentario = "Todavía falta afianzar buenas prácticas de despliegue. Repasá backups, planes de rollback, ambientes de staging y comunicación antes de poner un sistema en producción.";
+
+  const revisionHtml = m7.respuestas.map((r,i)=>{
+    const caso = CASOS_M7.find(c=>c.id===r.casoId);
+    return `<li style="margin-bottom:10px;">
+      <strong>${i+1}. ${caso.titulo}:</strong> ${r.correcta ? '✅' : '❌'} elegiste "${r.textoElegido}".<br>
+      <span style="font-size:.85rem; color:var(--ink-soft);">${r.feedback}</span>
+    </li>`;
+  }).join("");
+
+  return `
+    <span class="eyebrow">Resultado del módulo</span>
+    <h2>Decisiones de despliegue correctas: ${aciertos} de ${total} (${score}%)</h2>
+    <div class="sello">${score>=70 ? "Checklist de Despliegue Sólido" : "A Revisar"}</div>
+    <p class="lead">${comentario}</p>
+    <p style="margin-top:14px;"><strong>Repaso de tus respuestas:</strong></p>
+    <ul class="req-list">${revisionHtml}</ul>
+    <button class="primary" id="reintentar-m7">Repetir módulo</button>
+  `;
+}
+
+function renderModulo7(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(m7.indice >= CASOS_M7.length){
+    sheet.innerHTML = renderResultadoM7();
+    main.appendChild(sheet);
+    const btn = sheet.querySelector("#reintentar-m7");
+    if(btn) btn.addEventListener("click", ()=>{ resetM7(); render(); });
+    return;
+  }
+
+  const caso = CASOS_M7[m7.indice];
+
+  if(m7.mostrandoFeedback){
+    const ultima = m7.respuestas[m7.respuestas.length-1];
+    sheet.innerHTML = `
+      <span class="eyebrow">Caso ${m7.indice+1} de ${CASOS_M7.length} · ${caso.categoria} · Devolución</span>
+      <h2>${ultima.correcta ? '✅ Buena práctica aplicada' : '❌ Conviene repensarlo'}</h2>
+      <p><strong>Elegiste:</strong> ${ultima.textoElegido}</p>
+      <p class="lead">${ultima.feedback}</p>
+      <button class="primary" id="siguiente-m7">Siguiente caso</button>
+    `;
+    main.appendChild(sheet);
+    sheet.querySelector("#siguiente-m7").addEventListener("click", siguienteM7);
+    return;
+  }
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Caso ${m7.indice+1} de ${CASOS_M7.length} · ${caso.categoria}</span>
+    <h2>${caso.titulo}</h2>
+    <p class="lead">${caso.contexto}</p>
+    <p><strong>${caso.pregunta}</strong></p>
+    <div class="opciones" id="opciones-m7"></div>
+  `;
+
+  main.appendChild(sheet);
+
+  const cont = sheet.querySelector("#opciones-m7");
+  caso.opciones.forEach(op=>{
+    const b = document.createElement("button");
+    b.className = "opcion";
+    b.textContent = op.texto;
+    b.addEventListener("click", ()=> elegirOpcionM7(op));
+    cont.appendChild(b);
+  });
+}
+
+/* ============================================================
+   MÓDULO 8 — EXTRA: PROBLEMAS DEL ANALISTA
+   ============================================================ */
+const CASOS_M8 = [
+  {
+    id:"pa1", categoria:"Alcance cambiante",
+    titulo:"El cliente pide agregar funciones a mitad de proyecto",
+    contexto:"Estás a la mitad del desarrollo de un sistema de turnos para una clínica. El cliente te pide agregar una función de facturación electrónica que no estaba en el alcance original, sin mencionar cambios de plazo ni de presupuesto.",
+    pregunta:"¿Cómo conviene manejar este pedido como analista?",
+    opciones:[
+      {texto:"Aceptar el pedido sin decir nada, para no generar un conflicto con el cliente.", correcta:false, feedback:"Aceptar cambios de alcance sin ajustar plazo o presupuesto genera expectativas poco realistas y perjudica al proyecto (y a tu equipo) más adelante."},
+      {texto:"Rechazar el pedido de plano, diciendo que no está en el contrato.", correcta:false, feedback:"Rechazarlo sin más puede dañar la relación con el cliente; un buen analista busca cómo incorporar el pedido de forma ordenada, no cerrarse a él."},
+      {texto:"Explicarle que es un cambio de alcance válido, pero que implica ajustar el plazo o el presupuesto, y proponer evaluarlo formalmente antes de aceptarlo.", correcta:true, feedback:"Correcto: gestionar el 'scope creep' significa reconocer el pedido, pero dejando claro su impacto en tiempo/costo antes de comprometerse, en vez de aceptar o rechazar sin análisis."}
+    ]
+  },
+  {
+    id:"pa2", categoria:"Requisitos contradictorios",
+    titulo:"Dos áreas piden cosas opuestas",
+    contexto:"Al relevar requerimientos para un sistema de ventas, el área comercial pide que se pueda vender sin stock disponible (para no perder ventas), y el área de logística pide que sea imposible vender sin stock (para no incumplir entregas).",
+    pregunta:"¿Qué debería hacer el analista ante esta contradicción?",
+    opciones:[
+      {texto:"Elegir la opción del área que parezca más importante y avanzar sin consultar a la otra.", correcta:false, feedback:"Decidir unilateralmente sin involucrar a ambas partes puede generar un conflicto mayor más adelante, cuando la otra área vea que no se tuvo en cuenta su necesidad."},
+      {texto:"Organizar una reunión con ambas áreas para exponer la contradicción y definir juntos una regla de negocio consensuada.", correcta:true, feedback:"Correcto: cuando dos áreas piden cosas contradictorias, el rol del analista es hacer visible el conflicto y facilitar una decisión conjunta, no resolverlo por su cuenta ni ignorarlo."},
+      {texto:"Implementar ambas reglas al mismo tiempo, dejando que el sistema decida al azar cuál aplicar.", correcta:false, feedback:"Implementar reglas de negocio contradictorias sin resolver el conflicto de fondo generaría un sistema inconsistente e impredecible."}
+    ]
+  },
+  {
+    id:"pa3", categoria:"Cliente indeciso",
+    titulo:"El cliente no logra priorizar",
+    contexto:"Un cliente quiere 15 funcionalidades distintas para la primera versión de su sistema, pero el equipo solo tiene capacidad para desarrollar 5 en el tiempo disponible. El cliente dice que 'todas son importantes'.",
+    pregunta:"¿Cómo ayudar al cliente a definir qué construir primero?",
+    opciones:[
+      {texto:"Elegir las 5 funcionalidades que técnicamente sean más fáciles de programar, sin consultarlo.", correcta:false, feedback:"La facilidad técnica no siempre coincide con el valor de negocio; decidir sin el cliente puede dejar afuera algo crítico para él."},
+      {texto:"Insistir en que decida él solo, sin ofrecerle ninguna herramienta para priorizar.", correcta:false, feedback:"Pedirle que decida sin más, cuando ya mostró dificultad para priorizar, probablemente no destrabe la situación."},
+      {texto:"Guiarlo con una técnica de priorización (por ejemplo, valor de negocio vs. esfuerzo, o MoSCoW) para identificar juntos las 5 más críticas.", correcta:true, feedback:"Correcto: cuando un cliente no puede priorizar por su cuenta, el analista puede aportar una técnica concreta (matriz valor/esfuerzo, MoSCoW, etc.) para facilitar una decisión conjunta y fundamentada."}
+    ]
+  },
+  {
+    id:"pa4", categoria:"Presión de tiempo",
+    titulo:"Menos tiempo del necesario",
+    contexto:"El sponsor del proyecto anuncia que la fecha de entrega se adelanta un mes, sin reducir el alcance ni sumar más gente al equipo.",
+    pregunta:"¿Cuál es la respuesta más profesional del analista ante este anuncio?",
+    opciones:[
+      {texto:"Aceptar la nueva fecha sin comentarios y pedirle al equipo que trabaje horas extra para compensar.", correcta:false, feedback:"Aceptar sin cuestionar traslada toda la presión al equipo y no deja constancia de un riesgo real de calidad o retraso; no es sostenible ni transparente con el sponsor."},
+      {texto:"Explicarle al sponsor, con datos, que reducir el plazo sin ajustar alcance o recursos implica un riesgo real, y proponer opciones concretas (recortar alcance, sumar recursos, o mantener el plazo original).", correcta:true, feedback:"Correcto: el analista debe traducir la restricción de tiempo en un riesgo concreto y presentar opciones reales, en vez de aceptar en silencio o simplemente quejarse."},
+      {texto:"Decirle al sponsor que es imposible y que no se va a hacer nada al respecto.", correcta:false, feedback:"Negarse sin ofrecer alternativas no ayuda a resolver el problema del sponsor ni construye una buena relación de trabajo."}
+    ]
+  },
+  {
+    id:"pa5", categoria:"Requerimiento inviable",
+    titulo:"Un pedido técnicamente imposible",
+    contexto:"Durante el relevamiento, un cliente pide que el sistema envíe notificaciones por SMS de forma completamente gratuita, sin usar ningún servicio pago de mensajería, algo que no es técnicamente viable sin costo.",
+    pregunta:"¿Qué debería hacer el analista?",
+    opciones:[
+      {texto:"Anotar el pedido tal cual y prometer que se va a poder cumplir, para no decepcionar al cliente en la reunión.", correcta:false, feedback:"Comprometerse con algo que se sabe inviable genera un problema mayor más adelante, cuando el cliente descubra que no se puede cumplir lo prometido."},
+      {texto:"Explicarle en el momento por qué ese pedido puntual no es viable tal como está planteado, y proponer alternativas reales.", correcta:true, feedback:"Correcto: cuando un pedido es técnicamente inviable, el analista debe comunicarlo con claridad en el momento y ofrecer alternativas viables, en vez de prometer algo imposible o simplemente decir que no."},
+      {texto:"No decir nada en la reunión y dejar que el equipo de desarrollo le explique después por qué no se puede.", correcta:false, feedback:"Postergar una mala noticia técnica no la hace desaparecer, y delegarla al equipo de desarrollo sin contexto puede generar una comunicación confusa o inconsistente con el cliente."}
+    ]
+  },
+  {
+    id:"pa6", categoria:"Necesidad real vs. pedido",
+    titulo:"Lo que el cliente pide no es lo que necesita",
+    contexto:"Un cliente pide 'un botón para exportar todo a Excel', pero al indagar un poco más, se descubre que lo que realmente necesita es poder generar un reporte mensual de ventas para presentarle a sus socios.",
+    pregunta:"¿Qué debería priorizar el analista al definir la solución?",
+    opciones:[
+      {texto:"Implementar exactamente lo que pidió (el botón de exportar todo a Excel) sin indagar más.", correcta:false, feedback:"Cumplir el pedido literal, sin entender la necesidad real detrás, puede terminar dándole al cliente algo que no resuelve del todo su problema."},
+      {texto:"Diseñar una solución centrada en la necesidad real detectada (un reporte mensual de ventas claro y presentable), que puede incluir la exportación a Excel como parte de eso.", correcta:true, feedback:"Correcto: un buen relevamiento distingue entre el pedido explícito ('exportar a Excel') y la necesidad real detrás ('mostrarles resultados a los socios'), y diseña la solución en función de esta última."},
+      {texto:"Ignorar el pedido original y hacer directamente lo que el analista cree que es mejor, sin validarlo con el cliente.", correcta:false, feedback:"Aunque se identifique una necesidad real distinta, avanzar sin validarlo con el cliente puede llevar a construir algo que tampoco termine conforme a lo que espera."}
+    ]
+  },
+  {
+    id:"pa7", categoria:"Sistema legado",
+    titulo:"Documentación desactualizada",
+    contexto:"Te piden modificar un sistema viejo de una empresa, pero la documentación disponible tiene años de desactualización y no coincide con cómo funciona realmente el sistema hoy.",
+    pregunta:"¿Cómo debería proceder el analista en esta situación?",
+    opciones:[
+      {texto:"Confiar completamente en la documentación existente y hacer los cambios en base a eso.", correcta:false, feedback:"Si la documentación está desactualizada, basarse en ella sin verificar puede llevar a romper funcionalidades que en la práctica funcionan distinto a lo documentado."},
+      {texto:"Negarse a trabajar con el sistema hasta que exista documentación actualizada.", correcta:false, feedback:"Es poco realista frenar el proyecto por completo; en sistemas legados, es común tener que trabajar con documentación imperfecta."},
+      {texto:"Combinar la revisión de la documentación existente con pruebas exploratorias y consultas a quienes usan el sistema en el día a día, para reconstruir cómo funciona realmente antes de modificarlo.", correcta:true, feedback:"Correcto: frente a documentación desactualizada, conviene contrastarla con el comportamiento real del sistema (pruebas, entrevistas a usuarios clave) antes de intervenir, para no romper algo que funciona de una manera distinta a la documentada."}
+    ]
+  },
+  {
+    id:"pa8", categoria:"Comunicar malas noticias",
+    titulo:"Avisar un retraso al cliente",
+    contexto:"Faltan pocos días para la fecha de entrega acordada, y el equipo detecta que no van a llegar a tiempo con todo lo prometido.",
+    pregunta:"¿Cuál es la mejor forma de manejar esta situación con el cliente?",
+    opciones:[
+      {texto:"Esperar hasta el mismo día de la entrega para avisar, con la esperanza de que en el último momento se resuelva solo.", correcta:false, feedback:"Postergar el aviso reduce el tiempo que tiene el cliente para reaccionar y tomar decisiones, y genera una sorpresa negativa evitable."},
+      {texto:"Avisar cuanto antes, con la mayor anticipación posible, explicando qué va a estar listo, qué no, y proponiendo un nuevo plan.", correcta:true, feedback:"Correcto: comunicar un retraso apenas se detecta, con un plan concreto de cómo seguir, genera mucha más confianza que ocultarlo o avisarlo a último momento."},
+      {texto:"No avisar nada y simplemente entregar lo que se llegó a hacer en la fecha pactada, sin explicación.", correcta:false, feedback:"Entregar algo incompleto sin ninguna explicación previa daña la confianza del cliente y no le da la oportunidad de ajustar sus propios planes."}
+    ]
+  }
+];
+
+let m8 = {indice:0, respuestas:[], mostrandoFeedback:false};
+
+function resetM8(){
+  m8 = {indice:0, respuestas:[], mostrandoFeedback:false};
+}
+
+function elegirOpcionM8(op){
+  m8.respuestas.push({casoId: CASOS_M8[m8.indice].id, correcta: op.correcta, feedback: op.feedback, textoElegido: op.texto});
+  m8.mostrandoFeedback = true;
+  render();
+}
+
+function siguienteM8(){
+  m8.indice++;
+  m8.mostrandoFeedback = false;
+  render();
+}
+
+function renderResultadoM8(){
+  const aciertos = m8.respuestas.filter(r=>r.correcta).length;
+  const total = CASOS_M8.length;
+  const score = Math.round((aciertos/total)*100);
+  state.mod8.completado = true;
+  state.mod8.score = score;
+  saveState();
+
+  let comentario;
+  if(score>=80) comentario = "Muy buen criterio como analista: sabés manejar conflictos de alcance, requisitos contradictorios, clientes indecisos y malas noticias con profesionalismo, no solo con buena voluntad.";
+  else if(score>=50) comentario = "Criterio parcial: resolviste bien algunas situaciones, pero conviene repasar las que fallaste — son los problemas más comunes del día a día de un analista de sistemas.";
+  else comentario = "Todavía falta afianzar criterio frente a estos problemas típicos. Repasá cómo gestionar cambios de alcance, conflictos entre áreas, y comunicación de malas noticias antes de enfrentarlos en un proyecto real.";
+
+  const revisionHtml = m8.respuestas.map((r,i)=>{
+    const caso = CASOS_M8.find(c=>c.id===r.casoId);
+    return `<li style="margin-bottom:10px;">
+      <strong>${i+1}. ${caso.titulo}:</strong> ${r.correcta ? '✅' : '❌'} elegiste "${r.textoElegido}".<br>
+      <span style="font-size:.85rem; color:var(--ink-soft);">${r.feedback}</span>
+    </li>`;
+  }).join("");
+
+  return `
+    <span class="eyebrow">Resultado del módulo</span>
+    <h2>Problemas resueltos correctamente: ${aciertos} de ${total} (${score}%)</h2>
+    <div class="sello">${score>=70 ? "Criterio de Analista Sólido" : "A Revisar"}</div>
+    <p class="lead">${comentario}</p>
+    <p style="margin-top:14px;"><strong>Repaso de tus respuestas:</strong></p>
+    <ul class="req-list">${revisionHtml}</ul>
+    <button class="primary" id="reintentar-m8">Repetir módulo</button>
+  `;
+}
+
+function renderModulo8(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(m8.indice >= CASOS_M8.length){
+    sheet.innerHTML = renderResultadoM8();
+    main.appendChild(sheet);
+    const btn = sheet.querySelector("#reintentar-m8");
+    if(btn) btn.addEventListener("click", ()=>{ resetM8(); render(); });
+    return;
+  }
+
+  const caso = CASOS_M8[m8.indice];
+
+  if(m8.mostrandoFeedback){
+    const ultima = m8.respuestas[m8.respuestas.length-1];
+    sheet.innerHTML = `
+      <span class="eyebrow">Extra · Problemas del Analista · Caso ${m8.indice+1} de ${CASOS_M8.length} · ${caso.categoria} · Devolución</span>
+      <h2>${ultima.correcta ? '✅ Buena resolución' : '❌ Conviene repensarlo'}</h2>
+      <p><strong>Elegiste:</strong> ${ultima.textoElegido}</p>
+      <p class="lead">${ultima.feedback}</p>
+      <button class="primary" id="siguiente-m8">Siguiente caso</button>
+    `;
+    main.appendChild(sheet);
+    sheet.querySelector("#siguiente-m8").addEventListener("click", siguienteM8);
+    return;
+  }
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Extra · Problemas del Analista · Caso ${m8.indice+1} de ${CASOS_M8.length} · ${caso.categoria}</span>
+    <h2>${caso.titulo}</h2>
+    <p class="lead">${caso.contexto}</p>
+    <p><strong>${caso.pregunta}</strong></p>
+    <div class="opciones" id="opciones-m8"></div>
+  `;
+
+  main.appendChild(sheet);
+
+  const cont = sheet.querySelector("#opciones-m8");
+  caso.opciones.forEach(op=>{
+    const b = document.createElement("button");
+    b.className = "opcion";
+    b.textContent = op.texto;
+    b.addEventListener("click", ()=> elegirOpcionM8(op));
+    cont.appendChild(b);
+  });
+}
+
+/* ============================================================
    INSTALACIÓN DE LA PWA
    ============================================================ */
 const INSTALL_DISMISSED_KEY = "legajo-sistemas-install-dismissed";
@@ -2062,11 +2653,17 @@ document.getElementById("btn-restablecer").addEventListener("click", ()=>{
   if(!state.mod4) state.mod4 = {completado:false, jefes:{}};
   if(!state.mod4.jefes) state.mod4.jefes = {};
   if(!state.mod5) state.mod5 = {completado:false, score:0};
+  if(!state.mod6) state.mod6 = {completado:false, score:0};
+  if(!state.mod7) state.mod7 = {completado:false, score:0};
+  if(!state.mod8) state.mod8 = {completado:false, score:0};
   resetM1();
   resetM2();
   resetM3();
   resetM4();
   resetM5();
+  resetM6();
+  resetM7();
+  resetM8();
   currentMod = 1;
   render();
 });
