@@ -269,6 +269,43 @@
     color:var(--navy);
     font-weight:bold;
   }
+  nav.tabs button.tab-indice{
+    background:var(--mustard);
+    color:var(--navy);
+    font-weight:bold;
+  }
+  .indice-lista{list-style:none; padding:0; margin:14px 0 0 0;}
+  .indice-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    margin-bottom:8px;
+  }
+  .indice-item .indice-texto{flex:1;}
+  .indice-item .indice-num{
+    font-family:'Courier New',monospace;
+    font-size:.7rem;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:2px;
+  }
+  .indice-item h3{margin:0 0 3px 0; font-size:1rem;}
+  .indice-item p{margin:0; font-size:.82rem; color:var(--ink-soft); line-height:1.4;}
+  .indice-item button{flex-shrink:0;}
+  .indice-grupo-titulo{
+    font-family:'Courier New',monospace;
+    font-size:.72rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--stamp);
+    margin:20px 0 6px 0;
+  }
+  .indice-grupo-titulo:first-of-type{margin-top:6px;}
 
   /* Acordeón de Apuntes */
   .apunte{
@@ -528,10 +565,11 @@
   <p>Simulador de Análisis y Metodología de Sistemas</p>
   <p class="definicion">Es la disciplina que estudia cómo relevar necesidades, elegir la metodología adecuada y planificar el desarrollo de un sistema de información.</p>
   <nav class="tabs" id="tabs">
+    <button data-mod="12" class="tab-indice active">Índice</button>
     <button data-mod="9" class="tab-apuntes">Apuntes</button>
     <button data-mod="10" class="tab-apuntes">Caso Real</button>
     <button data-mod="11" class="tab-apuntes">Cuestionario</button>
-    <button data-mod="1" class="active">Módulo 1<br>Relevamiento <span class="stamp-mini" id="stamp1"></span></button>
+    <button data-mod="1">Módulo 1<br>Relevamiento <span class="stamp-mini" id="stamp1"></span></button>
     <button data-mod="2">Módulo 2<br>Metodología <span class="stamp-mini" id="stamp2"></span></button>
     <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
     <button data-mod="5">Módulo 4<br>Diseño <span class="stamp-mini" id="stamp5"></span></button>
@@ -608,7 +646,7 @@ function refreshStamps(){
    ============================================================ */
 const main = document.getElementById("main");
 const tabButtons = document.querySelectorAll("#tabs button");
-let currentMod = 1;
+let currentMod = 12;
 
 tabButtons.forEach(btn=>{
   btn.addEventListener("click", ()=>{
@@ -638,6 +676,7 @@ function render(){
   if(currentMod===9) renderApuntes();
   if(currentMod===10) renderCasoReal();
   if(currentMod===11) renderCuestionario();
+  if(currentMod===12) renderIndice();
 }
 
 /* ============================================================
@@ -3239,6 +3278,80 @@ function renderCuestionario(){
 }
 
 /* ============================================================
+   ÍNDICE — Orden sugerido para usar la app
+   ============================================================ */
+const INDICE_GRUPOS = [
+  {
+    grupo:"Para orientarte antes de empezar",
+    items:[
+      {mod:9, titulo:"Apuntes", texto:"Repasá la teoría de todo el ciclo de desarrollo, en formato de apunte de cátedra, con glosario incluido."},
+      {mod:10, titulo:"Caso Real", texto:"Recorré un ejemplo completo y en palabras simples: el consultorio de la Dra. Ibáñez, fase por fase."}
+    ]
+  },
+  {
+    grupo:"El ciclo de desarrollo, en orden",
+    items:[
+      {mod:1, titulo:"Módulo 1 · Relevamiento", texto:"Practicá entrevistar clientes con distintas personalidades para relevar requisitos."},
+      {mod:2, titulo:"Módulo 2 · Metodología", texto:"Elegí la metodología de desarrollo más adecuada según el contexto de cada caso."},
+      {mod:3, titulo:"Módulo 3 · Sprint", texto:"Planificá un sprint sin sobrecargar la capacidad del equipo."},
+      {mod:5, titulo:"Módulo 4 · Diseño", texto:"Tomá decisiones de diseño: modelo de datos, arquitectura, interfaz, seguridad."},
+      {mod:6, titulo:"Módulo 5 · Testing", texto:"Diseñá casos de prueba y diagnosticá bugs con criterio profesional."},
+      {mod:7, titulo:"Módulo 6 · Despliegue", texto:"Aplicá buenas prácticas para poner un sistema en producción sin sobresaltos."}
+    ]
+  },
+  {
+    grupo:"Para autoevaluarte",
+    items:[
+      {mod:11, titulo:"Cuestionario", texto:"Repaso general mezclando opción múltiple y Verdadero/Falso de todos los temas."}
+    ]
+  },
+  {
+    grupo:"Extra: habilidades blandas del analista",
+    items:[
+      {mod:4, titulo:"Extra · Jefes", texto:"Practicá cómo manejar distintos perfiles de jefes en situaciones típicas del trabajo."},
+      {mod:8, titulo:"Extra · Problemas del Analista", texto:"Resolvé situaciones frecuentes del día a día profesional: alcance cambiante, clientes indecisos y más."}
+    ]
+  }
+];
+
+function irASeccion(mod){
+  currentMod = mod;
+  render();
+}
+
+function renderIndice(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  const gruposHtml = INDICE_GRUPOS.map((g, gi)=>{
+    const itemsHtml = g.items.map((item, ii)=>`
+      <li class="indice-item" data-mod="${item.mod}">
+        <div class="indice-texto">
+          <span class="indice-num">${gi+1}.${ii+1}</span>
+          <h3>${item.titulo}</h3>
+          <p>${item.texto}</p>
+        </div>
+        <button class="secondary indice-ir" data-mod="${item.mod}">Ir</button>
+      </li>
+    `).join("");
+    return `<div class="indice-grupo-titulo">${g.grupo}</div><ul class="indice-lista">${itemsHtml}</ul>`;
+  }).join("");
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Índice</span>
+    <h2>¿Por dónde empezar?</h2>
+    <p class="lead">Este es el orden sugerido para recorrer la app. No es obligatorio seguirlo al pie de la letra, pero te ayuda a no perderte entre tantas secciones.</p>
+    ${gruposHtml}
+  `;
+
+  main.appendChild(sheet);
+
+  sheet.querySelectorAll(".indice-ir").forEach(btn=>{
+    btn.addEventListener("click", ()=> irASeccion(parseInt(btn.dataset.mod)));
+  });
+}
+
+/* ============================================================
    INSTALACIÓN DE LA PWA
    ============================================================ */
 const INSTALL_DISMISSED_KEY = "legajo-sistemas-install-dismissed";
@@ -3323,7 +3436,7 @@ document.getElementById("btn-restablecer").addEventListener("click", ()=>{
   resetM8();
   resetMCaso();
   resetMCuestionario();
-  currentMod = 1;
+  currentMod = 12;
   render();
 });
 
