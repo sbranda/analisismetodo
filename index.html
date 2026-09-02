@@ -530,6 +530,7 @@
   <nav class="tabs" id="tabs">
     <button data-mod="9" class="tab-apuntes">Apuntes</button>
     <button data-mod="10" class="tab-apuntes">Caso Real</button>
+    <button data-mod="11" class="tab-apuntes">Cuestionario</button>
     <button data-mod="1" class="active">Módulo 1<br>Relevamiento <span class="stamp-mini" id="stamp1"></span></button>
     <button data-mod="2">Módulo 2<br>Metodología <span class="stamp-mini" id="stamp2"></span></button>
     <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
@@ -571,7 +572,8 @@ function loadState(){
     mod6:{completado:false, score:0},
     mod7:{completado:false, score:0},
     mod8:{completado:false, score:0},
-    mod10:{completado:false}
+    mod10:{completado:false},
+    mod11:{completado:false, score:0}
   };
 }
 function saveState(){
@@ -586,6 +588,7 @@ if(!state.mod6) state.mod6 = {completado:false, score:0};
 if(!state.mod7) state.mod7 = {completado:false, score:0};
 if(!state.mod8) state.mod8 = {completado:false, score:0};
 if(!state.mod10) state.mod10 = {completado:false};
+if(!state.mod11) state.mod11 = {completado:false, score:0};
 
 function refreshStamps(){
   const hechosM1 = Object.values(state.mod1.personas || {}).filter(p=>p.completado).length;
@@ -634,6 +637,7 @@ function render(){
   if(currentMod===8) renderModulo8();
   if(currentMod===9) renderApuntes();
   if(currentMod===10) renderCasoReal();
+  if(currentMod===11) renderCuestionario();
 }
 
 /* ============================================================
@@ -3013,6 +3017,228 @@ function renderCasoReal(){
 }
 
 /* ============================================================
+   CUESTIONARIO — Repaso general (opción múltiple + V/F)
+   ============================================================ */
+const CUESTIONARIO = [
+  {
+    id:"q1", categoria:"Relevamiento", tipo:"opcion",
+    pregunta:"Un requisito que dice 'el sistema debe responder en menos de 2 segundos' es un ejemplo de:",
+    opciones:[
+      {texto:"Requisito funcional", correcta:false, feedback:"Un requisito funcional describe algo que el sistema debe hacer, no una cualidad de su comportamiento."},
+      {texto:"Requisito no funcional", correcta:true, feedback:"Correcto: el tiempo de respuesta es una cualidad/restricción del sistema, no una función puntual — es un requisito no funcional."},
+      {texto:"Caso de uso", correcta:false, feedback:"Un caso de uso describe una interacción entre un actor y el sistema, no una restricción de rendimiento."}
+    ]
+  },
+  {
+    id:"q2", categoria:"Scrum", tipo:"vf",
+    afirmacion:"En Scrum, el Product Owner es quien facilita las reuniones y remueve obstáculos del equipo.",
+    correcta:false,
+    feedback:"Falso: quien facilita el proceso y remueve obstáculos es el Scrum Master. El Product Owner prioriza el backlog y representa la voz del negocio."
+  },
+  {
+    id:"q3", categoria:"Metodologías", tipo:"opcion",
+    pregunta:"¿Qué metodología conviene más cuando los requisitos son muy estables y no se esperan cambios durante el proyecto?",
+    opciones:[
+      {texto:"Cascada", correcta:true, feedback:"Correcto: la cascada funciona bien cuando los requisitos están claros y no van a cambiar, ya que es un modelo secuencial poco flexible ante modificaciones."},
+      {texto:"Scrum", correcta:false, feedback:"Scrum brilla justamente cuando los requisitos pueden cambiar; si ya están firmes, no es donde más se aprovecha su flexibilidad."},
+      {texto:"Kanban", correcta:false, feedback:"Kanban es útil para flujo continuo de tareas, pero no es la respuesta más directa a requisitos estables, que es el escenario clásico de cascada."}
+    ]
+  },
+  {
+    id:"q4", categoria:"Planificación", tipo:"vf",
+    afirmacion:"Los story points miden el tiempo exacto en horas que va a llevar una tarea.",
+    correcta:false,
+    feedback:"Falso: los story points son una medida abstracta del esfuerzo relativo, no una cantidad exacta de horas."
+  },
+  {
+    id:"q5", categoria:"Diseño", tipo:"opcion",
+    pregunta:"En un diagrama de casos de uso, ¿puede un actor ser un proceso automático en vez de una persona?",
+    opciones:[
+      {texto:"Sí, un actor puede ser cualquier entidad externa que interactúa con el sistema, sea persona o no.", correcta:true, feedback:"Correcto: un actor no tiene que ser humano; un proceso automático, un temporizador o un sistema externo también pueden ser actores."},
+      {texto:"No, un actor siempre tiene que ser una persona.", correcta:false, feedback:"No es así: cualquier entidad externa que interactúe con el sistema puede representarse como actor, incluso si no es humana."},
+      {texto:"Solo si el proceso automático fue programado por el mismo equipo.", correcta:false, feedback:"Quién programó el proceso no es lo relevante; lo que importa es que interactúa con el sistema desde afuera."}
+    ]
+  },
+  {
+    id:"q6", categoria:"Diseño", tipo:"vf",
+    afirmacion:"La normalización de una base de datos busca reducir la redundancia y las inconsistencias en los datos.",
+    correcta:true,
+    feedback:"Verdadero: ese es justamente el objetivo de normalizar un modelo de datos."
+  },
+  {
+    id:"q7", categoria:"Testing", tipo:"opcion",
+    pregunta:"¿Cuál es la diferencia principal entre testing de caja negra y caja blanca?",
+    opciones:[
+      {texto:"La caja negra prueba desde afuera sin conocer el código; la caja blanca se basa en conocer la estructura interna del código.", correcta:true, feedback:"Correcto: esa es la diferencia clave entre ambas técnicas."},
+      {texto:"La caja negra es más rápida y la caja blanca más lenta, sin ninguna otra diferencia.", correcta:false, feedback:"La velocidad no es la diferencia central entre ambas técnicas; lo que cambia es si se conoce o no la estructura interna del código."},
+      {texto:"La caja blanca la hacen los usuarios finales y la caja negra los programadores.", correcta:false, feedback:"Eso no es correcto: ambas técnicas pueden ser aplicadas por testers o desarrolladores; la diferencia está en si se basan o no en el código."}
+    ]
+  },
+  {
+    id:"q8", categoria:"Testing", tipo:"vf",
+    afirmacion:"Probar los valores justo antes y después de un límite (por ejemplo, 17 y 18 años cuando el límite es 18) se llama testing de clases de equivalencia.",
+    correcta:false,
+    feedback:"Falso: eso se llama testing de valores límite (boundary testing). Las clases de equivalencia agrupan valores que deberían comportarse igual, no se enfocan en los bordes."
+  },
+  {
+    id:"q9", categoria:"Despliegue", tipo:"opcion",
+    pregunta:"Antes de aplicar una migración de base de datos en producción, ¿qué es imprescindible hacer?",
+    opciones:[
+      {texto:"Un backup completo de los datos.", correcta:true, feedback:"Correcto: el backup permite restaurar el estado anterior si algo sale mal durante la migración."},
+      {texto:"Avisar por redes sociales a todos los usuarios.", correcta:false, feedback:"Puede ser una buena práctica de comunicación, pero no reemplaza tener una copia de seguridad real de los datos."},
+      {texto:"Nada en especial: si funcionó en desarrollo, va a funcionar en producción.", correcta:false, feedback:"Que funcione en desarrollo no garantiza el mismo comportamiento con los datos reales de producción."}
+    ]
+  },
+  {
+    id:"q10", categoria:"Despliegue", tipo:"vf",
+    afirmacion:"Un ambiente de staging es un ambiente de prueba lo más parecido posible a producción, usado para validar cambios antes del despliegue final.",
+    correcta:true,
+    feedback:"Verdadero: esa es justamente la función de un ambiente de staging."
+  },
+  {
+    id:"q11", categoria:"Mantenimiento", tipo:"opcion",
+    pregunta:"¿Qué tipo de mantenimiento corresponde a agregar una funcionalidad nueva pedida por el cliente, sin que haya un error de por medio?",
+    opciones:[
+      {texto:"Correctivo", correcta:false, feedback:"El mantenimiento correctivo es para corregir errores (bugs), no para agregar funcionalidades nuevas."},
+      {texto:"Perfectivo", correcta:true, feedback:"Correcto: el mantenimiento perfectivo agrega mejoras o funcionalidades nuevas sin que haya un error de por medio."},
+      {texto:"Adaptativo", correcta:false, feedback:"El mantenimiento adaptativo responde a cambios del entorno (por ejemplo, una nueva versión de sistema operativo), no a pedidos de nuevas funcionalidades."}
+    ]
+  },
+  {
+    id:"q12", categoria:"Problemas del analista", tipo:"vf",
+    afirmacion:"El 'scope creep' se refiere a cuando el alcance de un proyecto crece de forma progresiva y no controlada, sin ajustar plazos ni presupuesto.",
+    correcta:true,
+    feedback:"Verdadero: esa es la definición de scope creep, o alcance cambiante."
+  },
+  {
+    id:"q13", categoria:"Problemas del analista", tipo:"opcion",
+    pregunta:"¿Cuál es la mejor práctica al detectar que un proyecto se va a entregar tarde?",
+    opciones:[
+      {texto:"Avisar cuanto antes, con un plan concreto de cómo seguir.", correcta:true, feedback:"Correcto: comunicar el retraso apenas se detecta, con un plan claro, genera más confianza que ocultarlo o avisar a último momento."},
+      {texto:"Esperar hasta el día de entrega, por si se resuelve solo.", correcta:false, feedback:"Postergar el aviso reduce el tiempo que tiene el cliente para reaccionar, y genera una sorpresa negativa evitable."},
+      {texto:"No decir nada y entregar lo que se llegó a hacer, sin explicación.", correcta:false, feedback:"Eso daña la confianza del cliente, que no tiene oportunidad de ajustar sus propios planes."}
+    ]
+  },
+  {
+    id:"q14", categoria:"Diseño", tipo:"vf",
+    afirmacion:"Guardar las contraseñas de los usuarios con un hash y salt es más seguro que guardarlas encriptadas de forma reversible.",
+    correcta:true,
+    feedback:"Verdadero: un hash con salt es irreversible, ni el propio sistema puede recuperar la contraseña original; una encriptación reversible sigue siendo vulnerable ante quien tenga la clave."
+  }
+];
+
+// Normaliza las preguntas V/F al mismo formato que las de opción múltiple
+function opcionesDeCuestionario(item){
+  if(item.tipo === "opcion") return item.opciones;
+  return [
+    {texto:"Verdadero", correcta:item.correcta===true, feedback:item.feedback},
+    {texto:"Falso", correcta:item.correcta===false, feedback:item.feedback}
+  ];
+}
+
+let mQ = {indice:0, respuestas:[], mostrandoFeedback:false};
+
+function resetMCuestionario(){
+  mQ = {indice:0, respuestas:[], mostrandoFeedback:false};
+}
+
+function elegirOpcionQ(op){
+  mQ.respuestas.push({qId: CUESTIONARIO[mQ.indice].id, correcta: op.correcta, feedback: op.feedback, textoElegido: op.texto});
+  mQ.mostrandoFeedback = true;
+  render();
+}
+
+function siguienteQ(){
+  mQ.indice++;
+  mQ.mostrandoFeedback = false;
+  render();
+}
+
+function renderResultadoCuestionario(){
+  const aciertos = mQ.respuestas.filter(r=>r.correcta).length;
+  const total = CUESTIONARIO.length;
+  const score = Math.round((aciertos/total)*100);
+  state.mod11.completado = true;
+  state.mod11.score = score;
+  saveState();
+
+  let comentario;
+  if(score>=80) comentario = "Excelente repaso general: tenés un dominio sólido de los conceptos clave de todo el ciclo de desarrollo, no solo de un tema puntual.";
+  else if(score>=50) comentario = "Repaso parcial: hay conceptos bien afianzados y otros para reforzar. Te conviene repasar los temas de las preguntas que fallaste en la sección de Apuntes.";
+  else comentario = "Todavía falta afianzar varios conceptos generales. Te recomendamos repasar Apuntes con calma antes de rendir este cuestionario de nuevo.";
+
+  const revisionHtml = mQ.respuestas.map((r,i)=>{
+    const item = CUESTIONARIO.find(q=>q.id===r.qId);
+    const enunciado = item.tipo === "opcion" ? item.pregunta : item.afirmacion;
+    return `<li style="margin-bottom:10px;">
+      <strong>${i+1}. [${item.categoria}] ${enunciado}</strong><br>
+      ${r.correcta ? '✅' : '❌'} elegiste "${r.textoElegido}".<br>
+      <span style="font-size:.85rem; color:var(--ink-soft);">${r.feedback}</span>
+    </li>`;
+  }).join("");
+
+  return `
+    <span class="eyebrow">Resultado del cuestionario</span>
+    <h2>Respuestas correctas: ${aciertos} de ${total} (${score}%)</h2>
+    <div class="sello">${score>=70 ? "Repaso General Aprobado" : "A Repasar"}</div>
+    <p class="lead">${comentario}</p>
+    <p style="margin-top:14px;"><strong>Repaso de tus respuestas:</strong></p>
+    <ul class="req-list">${revisionHtml}</ul>
+    <button class="primary" id="reintentar-q">Repetir cuestionario</button>
+  `;
+}
+
+function renderCuestionario(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  if(mQ.indice >= CUESTIONARIO.length){
+    sheet.innerHTML = renderResultadoCuestionario();
+    main.appendChild(sheet);
+    const btn = sheet.querySelector("#reintentar-q");
+    if(btn) btn.addEventListener("click", ()=>{ resetMCuestionario(); render(); });
+    return;
+  }
+
+  const item = CUESTIONARIO[mQ.indice];
+  const opciones = opcionesDeCuestionario(item);
+
+  if(mQ.mostrandoFeedback){
+    const ultima = mQ.respuestas[mQ.respuestas.length-1];
+    sheet.innerHTML = `
+      <span class="eyebrow">Pregunta ${mQ.indice+1} de ${CUESTIONARIO.length} · ${item.categoria} · Devolución</span>
+      <h2>${ultima.correcta ? '✅ Respuesta correcta' : '❌ Respuesta incorrecta'}</h2>
+      <p><strong>Elegiste:</strong> ${ultima.textoElegido}</p>
+      <p class="lead">${ultima.feedback}</p>
+      <button class="primary" id="siguiente-q">Siguiente pregunta</button>
+    `;
+    main.appendChild(sheet);
+    sheet.querySelector("#siguiente-q").addEventListener("click", siguienteQ);
+    return;
+  }
+
+  const enunciado = item.tipo === "opcion" ? item.pregunta : item.afirmacion;
+  const etiquetaTipo = item.tipo === "opcion" ? "Opción múltiple" : "Verdadero o Falso";
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Pregunta ${mQ.indice+1} de ${CUESTIONARIO.length} · ${item.categoria} · ${etiquetaTipo}</span>
+    <h2>${enunciado}</h2>
+    <div class="opciones" id="opciones-q"></div>
+  `;
+
+  main.appendChild(sheet);
+
+  const cont = sheet.querySelector("#opciones-q");
+  opciones.forEach(op=>{
+    const b = document.createElement("button");
+    b.className = "opcion";
+    b.textContent = op.texto;
+    b.addEventListener("click", ()=> elegirOpcionQ(op));
+    cont.appendChild(b);
+  });
+}
+
+/* ============================================================
    INSTALACIÓN DE LA PWA
    ============================================================ */
 const INSTALL_DISMISSED_KEY = "legajo-sistemas-install-dismissed";
@@ -3086,6 +3312,7 @@ document.getElementById("btn-restablecer").addEventListener("click", ()=>{
   if(!state.mod7) state.mod7 = {completado:false, score:0};
   if(!state.mod8) state.mod8 = {completado:false, score:0};
   if(!state.mod10) state.mod10 = {completado:false};
+  if(!state.mod11) state.mod11 = {completado:false, score:0};
   resetM1();
   resetM2();
   resetM3();
@@ -3095,6 +3322,7 @@ document.getElementById("btn-restablecer").addEventListener("click", ()=>{
   resetM7();
   resetM8();
   resetMCaso();
+  resetMCuestionario();
   currentMod = 1;
   render();
 });
