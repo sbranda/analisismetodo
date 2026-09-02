@@ -391,6 +391,7 @@
   .leyenda-piramide .punto{
     width:12px; height:12px; border-radius:3px; flex-shrink:0; margin-top:4px;
   }
+  .apunte-cuerpo .en-criollo{margin-top:16px; margin-bottom:4px;}
 
   /* Caso Real */
   .fase-tag{
@@ -2812,6 +2813,7 @@ const APUNTES = [
       </svg>
       <p class="apunte-diagrama-caption">El ciclo de vida del software: cada fase alimenta a la siguiente, y el mantenimiento puede volver a disparar un nuevo relevamiento.</p>
       <p>El <strong>analista de sistemas</strong> es quien actúa de puente entre el mundo del negocio (que habla en términos de procesos, necesidades y problemas) y el mundo técnico (que habla en términos de datos, funciones y arquitectura). Su trabajo no es solo "levantar requisitos", sino entender el problema real detrás de cada pedido.</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>Un analista de sistemas escucha el problema real de alguien y ayuda a armar un sistema que lo resuelva, pasando por varias etapas: entender el problema, pensar la solución, construirla, probarla, ponerla a funcionar y mantenerla al día.</div>
     `
   },
   {
@@ -2835,6 +2837,7 @@ const APUNTES = [
         <li>Relevar con todos los actores relevantes, no solo con quien pidió el sistema (por ejemplo, también con quienes lo van a usar día a día).</li>
       </ul>
       <p><strong>Error común:</strong> relevar soluciones en vez de problemas (el cliente dice "necesito un botón para exportar a Excel" cuando en realidad necesita "poder mostrarle un reporte a sus socios"). Un buen analista indaga el problema de fondo antes de aceptar la solución propuesta por el cliente.</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>Relevar es simplemente hablar con la gente y observar cómo trabaja, para enterarte bien qué necesita antes de ponerte a construir cualquier cosa.</div>
     `
   },
   {
@@ -2869,6 +2872,7 @@ const APUNTES = [
       <p>Se basa en un tablero visual con columnas (por ejemplo: Por hacer, En curso, Hecho) y límites de trabajo en curso (WIP) para evitar la sobrecarga. A diferencia de Scrum, no trabaja en sprints con duración fija, sino con un flujo continuo de tareas.</p>
       <h4>¿Cómo elegir metodología?</h4>
       <p>Depende de: qué tan estables son los requisitos (cascada funciona mejor si son estables; ágil si van a cambiar), el tamaño del equipo, la disponibilidad del cliente para dar feedback frecuente, y la criticidad del sistema (sistemas muy regulados a veces necesitan más documentación formal, típica de cascada).</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>Cascada es hacer todo en orden, paso por paso, sin volver atrás. Ágil es ir probando de a poco y corrigiendo sobre la marcha. Se elige una u otra según qué tan seguro estás de lo que hay que construir.</div>
     `
   },
   {
@@ -2897,6 +2901,7 @@ const APUNTES = [
         <text x="308" y="160" transform="rotate(-90 308 160)" text-anchor="middle" font-size="10" style="fill:var(--stamp)">se repite cada sprint</text>
       </svg>
       <p class="apunte-diagrama-caption">El ciclo de Scrum se repite sprint tras sprint: se planifica, se construye, se muestra lo hecho y se reflexiona sobre cómo mejorar.</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>Antes de ponerte a trabajar, elegís qué es lo más importante para hacer primero, lo anotás en tareas concretas, y trabajás en bloques cortos de tiempo (sprints) mostrando avances seguido.</div>
     `
   },
   {
@@ -2934,6 +2939,7 @@ const APUNTES = [
       <p>Buenas prácticas: consistencia visual, dar feedback claro al usuario ante cada acción, minimizar la carga cognitiva, y validar el diseño con <strong>wireframes</strong> o <strong>mockups</strong> antes de programar.</p>
       <h4>Diseño de API y seguridad</h4>
       <p>En una API REST, cada método HTTP tiene un propósito: <strong>GET</strong> para consultar, <strong>POST</strong> para crear, <strong>PUT/PATCH</strong> para actualizar, <strong>DELETE</strong> para eliminar. En materia de seguridad, un principio básico es nunca guardar contraseñas en texto plano: se guarda un <strong>hash con salt</strong>, de forma que ni el propio sistema pueda recuperar la contraseña original.</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>Diseñar es pensar cómo va a estar armado el sistema por dentro (qué datos guarda, cómo se conectan las pantallas, qué tan seguro es) antes de ponerte a programar, para no tener que rehacer todo después.</div>
     `
   },
   {
@@ -2969,6 +2975,7 @@ const APUNTES = [
       </ul>
       <h4>Gestión de bugs</h4>
       <p>Es clave distinguir <strong>severidad</strong> (qué tan grave es el impacto técnico o de negocio de un bug) de <strong>prioridad</strong> (qué tan urgente es corregirlo). Un bug que afecta el dinero de los usuarios, por ejemplo, es de alta severidad y alta prioridad, aunque sea poco frecuente; un detalle visual menor es de baja severidad aunque sea muy visible.</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>Probar un sistema es intentar romperlo a propósito, de distintas formas, para encontrar los errores antes de que los encuentre el usuario.</div>
     `
   },
   {
@@ -3005,6 +3012,7 @@ const APUNTES = [
       </ul>
       <h4>CI/CD (introducción)</h4>
       <p>La <strong>integración continua (CI)</strong> consiste en integrar y probar automáticamente los cambios de código con frecuencia. El <strong>despliegue continuo (CD)</strong> extiende esa automatización hasta el despliegue en producción, reduciendo el trabajo manual y el riesgo de errores humanos en el proceso.</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>Antes de que la gente empiece a usar el sistema de verdad, hacés una copia de seguridad, lo probás en un ambiente parecido al real, y tenés un plan por si algo sale mal.</div>
     `
   },
   {
@@ -3018,6 +3026,7 @@ const APUNTES = [
         <li><strong>Preventivo:</strong> refactorizar o reestructurar código para evitar problemas futuros, aunque el sistema funcione bien hoy (reducir la "deuda técnica").</li>
       </ul>
       <p>Una buena documentación durante las etapas anteriores (relevamiento, diseño, desarrollo) facilita enormemente el mantenimiento futuro, sobre todo cuando quien mantiene el sistema no es la misma persona que lo desarrolló originalmente.</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>El trabajo no termina cuando el sistema se entrega. Después hay que arreglar errores, adaptarlo a cambios, mejorarlo y prevenir problemas futuros.</div>
     `
   },
   {
@@ -3031,6 +3040,7 @@ const APUNTES = [
         <li><strong>Ética profesional:</strong> ser transparente sobre riesgos y limitaciones, y no prometer algo que se sabe inviable con tal de quedar bien en una reunión.</li>
       </ul>
       <p>Estas habilidades son las que se practican en los módulos <strong>Extra</strong> de esta app: Jefes y Problemas del Analista.</p>
+      <div class="en-criollo"><span class="quien">En palabras simples</span>Ser buen analista no es solo saber de tecnología. También es saber escuchar, explicar las cosas claro, y no prometer lo que no se puede cumplir.</div>
     `
   },
   {
