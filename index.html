@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Análisis y Metodología de Sistemas</title>
-<meta name="description" content="Simulador para practicar relevamiento, elección de metodología y planificación de sprints.">
+<meta name="description" content="Simulador integral de Análisis y Metodología de Sistemas: relevamiento, metodologías, sprints, diseño, testing, despliegue, apuntes teóricos y más.">
 <meta name="theme-color" content="#1B2430">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -3721,7 +3721,7 @@ if(esIOS() && !estaInstalada()){
    RESTABLECER PROGRESO
    ============================================================ */
 document.getElementById("btn-restablecer").addEventListener("click", ()=>{
-  const confirmado = window.confirm("¿Restablecer todo el progreso? Se van a borrar los resultados de los 4 módulos y no se puede deshacer.");
+  const confirmado = window.confirm("¿Restablecer todo el progreso? Se van a borrar los resultados de todos los módulos, extras, el Caso Real y el Cuestionario. No se puede deshacer.");
   if(!confirmado) return;
   localStorage.removeItem(STORAGE_KEY);
   state = loadState();

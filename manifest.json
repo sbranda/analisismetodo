@@ -1,7 +1,7 @@
 {
   "name": "Análisis y Metodología de Sistemas",
   "short_name": "Análisis Sistemas",
-  "description": "Simulador para practicar relevamiento, elección de metodología y planificación de sprints.",
+  "description": "Simulador integral de Análisis y Metodología de Sistemas: relevamiento, metodologías, sprints, diseño, testing, despliegue, apuntes teóricos y más.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
