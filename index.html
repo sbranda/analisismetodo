@@ -303,6 +303,47 @@
   .apunte-cuerpo p{margin:6px 0;}
   .apunte-cuerpo strong{color:var(--navy);}
 
+  /* Caso Real */
+  .fase-tag{
+    display:inline-block;
+    font-family:'Courier New',monospace;
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:3px 10px;
+    border-radius:10px;
+    background:var(--teal);
+    color:#fff;
+    margin-bottom:8px;
+  }
+  .en-criollo{
+    background:var(--paper-dark);
+    border-left:4px solid var(--mustard);
+    padding:10px 14px;
+    border-radius:0 var(--radius) var(--radius) 0;
+    margin:14px 0 4px 0;
+    font-style:italic;
+    font-size:.88rem;
+  }
+  .en-criollo .quien{
+    font-style:normal;
+    font-family:'Courier New',monospace;
+    font-size:.65rem;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:4px;
+    letter-spacing:1px;
+  }
+  .progreso-caso{
+    font-family:'Courier New',monospace;
+    font-size:.72rem;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .barra-caso{background:var(--paper-dark); border:1px solid var(--line); border-radius:6px; height:8px; overflow:hidden; margin-bottom:16px;}
+  .barra-caso .fill{height:100%; background:var(--teal);}
+
   /* Módulo 4 — medidores de relación / profesionalismo */
   .medidores-m4{display:flex; flex-direction:column; gap:8px; margin:10px 0;}
   .medidor-m4{font-size:.78rem; font-family:'Courier New',monospace;}
@@ -488,6 +529,7 @@
   <p class="definicion">Es la disciplina que estudia cómo relevar necesidades, elegir la metodología adecuada y planificar el desarrollo de un sistema de información.</p>
   <nav class="tabs" id="tabs">
     <button data-mod="9" class="tab-apuntes">Apuntes</button>
+    <button data-mod="10" class="tab-apuntes">Caso Real</button>
     <button data-mod="1" class="active">Módulo 1<br>Relevamiento <span class="stamp-mini" id="stamp1"></span></button>
     <button data-mod="2">Módulo 2<br>Metodología <span class="stamp-mini" id="stamp2"></span></button>
     <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
@@ -528,7 +570,8 @@ function loadState(){
     mod5:{completado:false, score:0},
     mod6:{completado:false, score:0},
     mod7:{completado:false, score:0},
-    mod8:{completado:false, score:0}
+    mod8:{completado:false, score:0},
+    mod10:{completado:false}
   };
 }
 function saveState(){
@@ -542,6 +585,7 @@ if(!state.mod5) state.mod5 = {completado:false, score:0};
 if(!state.mod6) state.mod6 = {completado:false, score:0};
 if(!state.mod7) state.mod7 = {completado:false, score:0};
 if(!state.mod8) state.mod8 = {completado:false, score:0};
+if(!state.mod10) state.mod10 = {completado:false};
 
 function refreshStamps(){
   const hechosM1 = Object.values(state.mod1.personas || {}).filter(p=>p.completado).length;
@@ -589,6 +633,7 @@ function render(){
   if(currentMod===7) renderModulo7();
   if(currentMod===8) renderModulo8();
   if(currentMod===9) renderApuntes();
+  if(currentMod===10) renderCasoReal();
 }
 
 /* ============================================================
@@ -2869,6 +2914,105 @@ function renderApuntes(){
 }
 
 /* ============================================================
+   CASO REAL — Recorrido interactivo por todas las fases
+   ============================================================ */
+const CASO_REAL = [
+  {
+    fase:"Contexto", titulo:"El consultorio de la Dra. Ibáñez",
+    texto:`La Dra. Ibáñez tiene un consultorio de kinesiología con otros 3 profesionales. Hoy los turnos se anotan en un cuaderno y por WhatsApp, y todas las semanas hay quilombo: turnos duplicados, pacientes que faltan sin avisar, y mucho tiempo perdido en llamados para reconfirmar. Te contratan a vos, como analista de sistemas, para construir un sistema de turnos. Vamos a recorrer, paso a paso y en criollo, todas las fases del proyecto.`,
+    criollo:null
+  },
+  {
+    fase:"Fase 1 · Relevamiento", titulo:"Entender el problema antes de construir nada",
+    texto:`Te sentás a hablar con la Dra. Ibáñez, con la secretaria, y con dos pacientes. Preguntás cómo hacen hoy las cosas y qué les molesta. Te enterás de que: la secretaria anota turnos en un cuaderno y a veces se pisan dos pacientes en el mismo horario; muchos pacientes faltan sin avisar y ese horario queda perdido; y los profesionales no tienen forma fácil de ver su agenda del día desde el celular. De ahí salen los primeros requerimientos: evitar que se pisen dos turnos en el mismo horario, mandar un recordatorio el día anterior, y que cada profesional vea su agenda desde el celular.`,
+    criollo:"Relevar es simplemente escuchar bien antes de construir, para no terminar resolviendo el problema equivocado."
+  },
+  {
+    fase:"Fase 2 · Metodología", titulo:"Elegir cómo vamos a trabajar",
+    texto:`El consultorio es chico, la Dra. Ibáñez está muy disponible para dar feedback seguido, y es probable que pidan ajustes sobre la marcha (por ejemplo, capaz al ver el sistema funcionando se dan cuenta de que también quieren bloquear turnos por vacaciones). Por eso elegís trabajar con una metodología ágil, con entregas cada dos semanas, en vez de esperar meses para mostrarles algo terminado.`,
+    criollo:"Como el cliente va a estar cerca y las ideas pueden cambiar en el camino, conviene ir mostrando de a poco, no todo junto al final."
+  },
+  {
+    fase:"Fase 3 · Planificación / Sprint", titulo:"Planificar qué se hace primero",
+    texto:`Armás una lista de todo lo que se podría construir (el backlog): agendar turnos, cancelar turnos, recordatorios automáticos, ver agenda por profesional, reportes de pacientes atendidos por mes, entre otras cosas. Como no se puede hacer todo junto, con la Dra. Ibáñez priorizan: lo más urgente es poder agendar turnos y evitar que se pisen. Eso se convierte en el primer sprint de dos semanas.`,
+    criollo:"Planificar es elegir bien qué construir primero, no tratar de hacer todo de una vez."
+  },
+  {
+    fase:"Fase 4 · Diseño", titulo:"Diseñar la solución antes de programar",
+    texto:`Pensás cómo va a funcionar por dentro: un turno queda relacionado con un paciente y con un profesional, y un mismo horario no puede tener dos turnos del mismo profesional al mismo tiempo. Armás un boceto simple de la pantalla de agenda, para que la secretaria vea de un vistazo los turnos del día. Y decidís que, al principio, alcanza con un sistema sencillo, ya que es para un solo consultorio chico (nada de arquitecturas complicadas que no hacen falta todavía).`,
+    criollo:"Diseñar es pensar la solución en papel antes de escribir una sola línea de código, para no tener que rehacer todo después."
+  },
+  {
+    fase:"Fase 5 · Desarrollo", titulo:"Construir el sistema",
+    texto:`El equipo de desarrollo programa la pantalla de agenda, la lógica para que no se pisen turnos, y el envío automático de recordatorios. Vos, como analista, quedás disponible para resolver dudas puntuales sobre cómo tiene que comportarse el sistema en casos raros — por ejemplo: "¿qué pasa si un paciente cancela dos horas antes del turno?".`,
+    criollo:"En esta etapa, tu rol como analista pasa a ser más de consulta: aclarar dudas y confirmar que lo que se construye coincide con lo relevado."
+  },
+  {
+    fase:"Fase 6 · Testing", titulo:"Probar antes de mostrarlo",
+    texto:`Antes de mostrarle el sistema a la Dra. Ibáñez, lo probás a fondo: intentás agendar dos turnos en el mismo horario para el mismo profesional (no debería dejar), probás agendar justo en el último horario del día, y probás cancelar un turno para ver si el horario queda libre de nuevo. Encontrás un bug: si dos personas agendan al mismo tiempo desde dos celulares distintos, a veces se pisan igual. Se reporta y se corrige antes de avanzar.`,
+    criollo:"Probar antes de entregar evita que el cliente sea quien descubra los errores en pleno uso real."
+  },
+  {
+    fase:"Fase 7 · Despliegue", titulo:"Poner el sistema en marcha",
+    texto:`Antes de que el consultorio empiece a usarlo de verdad, hacés una copia de seguridad de los turnos futuros que ya tenían cargados en una planilla. Lo activás primero solo para la Dra. Ibáñez, como prueba piloto, mientras los demás profesionales siguen con el cuaderno unos días más. Le mostrás a la secretaria cómo usarlo con una guía rápida de una sola página. Después de una semana sin problemas, lo activás para todo el consultorio.`,
+    criollo:"Desplegar de a poco, con un plan por si algo sale mal, es más seguro que lanzar todo de golpe."
+  },
+  {
+    fase:"Fase 8 · Mantenimiento", titulo:"Sostenerlo en el tiempo",
+    texto:`Un mes después, la Dra. Ibáñez pide un cambio: quiere poder bloquear un horario cuando se va de vacaciones, para que no le agenden turnos esos días (eso es una mejora nueva, mantenimiento perfectivo). También aparece un bug raro que nadie había visto antes (mantenimiento correctivo), y hay que actualizar el sistema operativo del servidor donde corre el sistema (mantenimiento adaptativo).`,
+    criollo:"El sistema no termina el día que se entrega: sigue evolucionando mientras se usa."
+  },
+  {
+    fase:"Cierre", titulo:"Repaso del caso completo",
+    texto:`En este caso recorriste las mismas fases que practicás en cada módulo de esta app: relevaste un problema real (Módulo 1), elegiste una metodología acorde (Módulo 2), planificaste el trabajo en sprints (Módulo 3), diseñaste la solución (Módulo 4), la probaste a fondo (Módulo 5), la desplegaste con cuidado (Módulo 6), y viste cómo sigue evolucionando después (mantenimiento, en Apuntes). Ahora esos conceptos tienen menos de teoría abstracta y más de un caso que te podrías encontrar en la vida real.`,
+    criollo:null
+  }
+];
+
+let mCaso = {indice:0};
+
+function resetMCaso(){
+  mCaso = {indice:0};
+}
+
+function renderCasoReal(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  const paso = CASO_REAL[mCaso.indice];
+  const total = CASO_REAL.length;
+  const pct = Math.round(((mCaso.indice+1)/total)*100);
+
+  if(mCaso.indice === total-1){
+    state.mod10 = {completado:true};
+    saveState();
+  }
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Caso Real</span>
+    <div class="progreso-caso">Paso ${mCaso.indice+1} de ${total}</div>
+    <div class="barra-caso"><div class="fill" style="width:${pct}%"></div></div>
+    ${paso.fase !== "Contexto" && paso.fase !== "Cierre" ? `<span class="fase-tag">${paso.fase}</span>` : ''}
+    <h2>${paso.titulo}</h2>
+    <p class="lead">${paso.texto}</p>
+    ${paso.criollo ? `<div class="en-criollo"><span class="quien">En criollo</span>${paso.criollo}</div>` : ''}
+    <div style="margin-top:16px;">
+      ${mCaso.indice>0 ? '<button class="secondary" id="anterior-caso">Anterior</button>' : ''}
+      ${mCaso.indice<total-1 ? '<button class="primary" id="siguiente-caso">Siguiente</button>' : '<button class="primary" id="reiniciar-caso">Volver a empezar</button>'}
+    </div>
+  `;
+
+  main.appendChild(sheet);
+
+  const btnSig = sheet.querySelector("#siguiente-caso");
+  if(btnSig) btnSig.addEventListener("click", ()=>{ mCaso.indice++; render(); });
+  const btnAnt = sheet.querySelector("#anterior-caso");
+  if(btnAnt) btnAnt.addEventListener("click", ()=>{ mCaso.indice--; render(); });
+  const btnReiniciar = sheet.querySelector("#reiniciar-caso");
+  if(btnReiniciar) btnReiniciar.addEventListener("click", ()=>{ resetMCaso(); render(); });
+}
+
+/* ============================================================
    INSTALACIÓN DE LA PWA
    ============================================================ */
 const INSTALL_DISMISSED_KEY = "legajo-sistemas-install-dismissed";
@@ -2941,6 +3085,7 @@ document.getElementById("btn-restablecer").addEventListener("click", ()=>{
   if(!state.mod6) state.mod6 = {completado:false, score:0};
   if(!state.mod7) state.mod7 = {completado:false, score:0};
   if(!state.mod8) state.mod8 = {completado:false, score:0};
+  if(!state.mod10) state.mod10 = {completado:false};
   resetM1();
   resetM2();
   resetM3();
@@ -2949,6 +3094,7 @@ document.getElementById("btn-restablecer").addEventListener("click", ()=>{
   resetM6();
   resetM7();
   resetM8();
+  resetMCaso();
   currentMod = 1;
   render();
 });
