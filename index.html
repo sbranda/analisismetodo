@@ -3372,6 +3372,7 @@ function scoreDeSeccion(mod){
   if(mod===5) return state.mod5.score;
   if(mod===6) return state.mod6.score;
   if(mod===7) return state.mod7.score;
+  if(mod===8) return state.mod8.score;
   if(mod===11) return state.mod11.score;
   return null;
 }
@@ -3435,6 +3436,7 @@ function renderIndice(){
       </div>
       <div class="barra-caso"><div class="fill" style="width:${prog.pct}%"></div></div>
       <p class="lead" style="margin:6px 0 0 0; font-size:.85rem;">${mensajeMotivacional(prog.hechas, prog.total)}</p>
+      <button class="secondary" id="btn-exportar" style="margin-top:10px; margin-left:0;">Exportar resultados</button>
     </div>
 
     ${gruposHtml}
@@ -3445,6 +3447,101 @@ function renderIndice(){
   sheet.querySelectorAll(".indice-ir").forEach(btn=>{
     btn.addEventListener("click", ()=> irASeccion(parseInt(btn.dataset.mod)));
   });
+  sheet.querySelector("#btn-exportar").addEventListener("click", exportarResultados);
+}
+
+function exportarResultados(){
+  const ahora = new Date();
+  const fecha = ahora.toLocaleDateString("es-AR");
+  const hora = ahora.toLocaleTimeString("es-AR");
+  const prog = progresoGeneral();
+
+  let l = [];
+  l.push("=".repeat(60));
+  l.push("ANÁLISIS Y METODOLOGÍA DE SISTEMAS — RESULTADOS");
+  l.push("=".repeat(60));
+  l.push(`Exportado: ${fecha} ${hora}`);
+  l.push(`Progreso general: ${prog.hechas} / ${prog.total} secciones completas (${prog.pct}%)`);
+  l.push("");
+
+  // Módulo 1 — Relevamiento
+  l.push("-".repeat(60));
+  l.push("MÓDULO 1 · RELEVAMIENTO");
+  l.push("-".repeat(60));
+  if(Object.keys(state.mod1.personas || {}).length === 0){
+    l.push("Sin entrevistas completadas todavía.");
+  } else {
+    PERSONAS_M1.forEach(p=>{
+      const r = state.mod1.personas[p.id];
+      l.push(r ? `  ${p.nombre} (${p.dificultad}): ${r.score}% de requisitos relevados` : `  ${p.nombre}: pendiente`);
+    });
+  }
+  l.push(`Estado general: ${state.mod1.completado ? "Completo" : "Pendiente"}`);
+  l.push("");
+
+  // Módulos con score único (2, 3, 5, 6, 7, 11)
+  const modulosScore = [
+    {mod:2, nombre:"MÓDULO 2 · METODOLOGÍA"},
+    {mod:3, nombre:"MÓDULO 3 · SPRINT"},
+    {mod:5, nombre:"MÓDULO 4 · DISEÑO"},
+    {mod:6, nombre:"MÓDULO 5 · TESTING"},
+    {mod:7, nombre:"MÓDULO 6 · DESPLIEGUE"},
+    {mod:11, nombre:"CUESTIONARIO GENERAL"}
+  ];
+  modulosScore.forEach(m=>{
+    l.push("-".repeat(60));
+    l.push(m.nombre);
+    l.push("-".repeat(60));
+    const completo = seccionCompletada(m.mod);
+    const score = scoreDeSeccion(m.mod);
+    l.push(completo ? `Completo — Puntaje: ${score}%` : "Pendiente");
+    l.push("");
+  });
+
+  // Caso Real
+  l.push("-".repeat(60));
+  l.push("CASO REAL");
+  l.push("-".repeat(60));
+  l.push(seccionCompletada(10) ? "Recorrido completo." : "Pendiente.");
+  l.push("");
+
+  // Extra — Jefes
+  l.push("-".repeat(60));
+  l.push("EXTRA · JEFES");
+  l.push("-".repeat(60));
+  if(!state.mod4.jefes || Object.keys(state.mod4.jefes).length === 0){
+    l.push("Sin perfiles completados todavía.");
+  } else {
+    JEFES_M4.forEach(j=>{
+      const r = state.mod4.jefes[j.id];
+      l.push(r ? `  ${j.nombre} (${j.perfil}): Relación ${r.relacion}% · Profesionalismo ${r.profesionalismo}%` : `  ${j.nombre}: pendiente`);
+    });
+  }
+  l.push(`Estado general: ${state.mod4.completado ? "Completo" : "Pendiente"}`);
+  l.push("");
+
+  // Extra — Problemas del analista
+  l.push("-".repeat(60));
+  l.push("EXTRA · PROBLEMAS DEL ANALISTA");
+  l.push("-".repeat(60));
+  l.push(seccionCompletada(8) ? `Completo — Puntaje: ${scoreDeSeccion(8)}%` : "Pendiente");
+  l.push("");
+
+  l.push("=".repeat(60));
+  l.push("Desarrollado por @sebranda");
+  l.push("=".repeat(60));
+
+  const contenido = l.join("\n");
+  const blob = new Blob([contenido], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const fechaArchivo = ahora.toISOString().slice(0,10);
+  a.href = url;
+  a.download = `resultados-analisis-sistemas-${fechaArchivo}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /* ============================================================
