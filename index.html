@@ -264,6 +264,44 @@
   .dif-pasivo{background:#6B5B95;}
   .dif-ausente{background:#5a6b7a;}
   .dif-microgestor{background:#B36A00;}
+  nav.tabs button.tab-apuntes{
+    background:var(--teal);
+    color:var(--navy);
+    font-weight:bold;
+  }
+
+  /* Acordeón de Apuntes */
+  .apunte{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    margin:10px 0;
+    overflow:hidden;
+  }
+  .apunte summary{
+    padding:12px 14px;
+    font-family:'Courier New',monospace;
+    font-size:.85rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    cursor:pointer;
+    background:var(--paper-dark);
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .apunte summary::-webkit-details-marker{display:none;}
+  .apunte summary::after{content:"+"; font-size:1.1rem; font-family:Georgia,serif;}
+  .apunte[open] summary::after{content:"–";}
+  .apunte[open] summary{background:var(--navy); color:var(--paper);}
+  .apunte-cuerpo{padding:14px 16px 18px 16px;}
+  .apunte-cuerpo h4{margin:14px 0 4px 0; font-size:.95rem; color:var(--stamp);}
+  .apunte-cuerpo h4:first-child{margin-top:0;}
+  .apunte-cuerpo ul{margin:6px 0; padding-left:20px;}
+  .apunte-cuerpo li{margin-bottom:4px; line-height:1.5;}
+  .apunte-cuerpo p{margin:6px 0;}
+  .apunte-cuerpo strong{color:var(--navy);}
 
   /* Módulo 4 — medidores de relación / profesionalismo */
   .medidores-m4{display:flex; flex-direction:column; gap:8px; margin:10px 0;}
@@ -449,6 +487,7 @@
   <p>Simulador de Análisis y Metodología de Sistemas</p>
   <p class="definicion">Es la disciplina que estudia cómo relevar necesidades, elegir la metodología adecuada y planificar el desarrollo de un sistema de información.</p>
   <nav class="tabs" id="tabs">
+    <button data-mod="9" class="tab-apuntes">Apuntes</button>
     <button data-mod="1" class="active">Módulo 1<br>Relevamiento <span class="stamp-mini" id="stamp1"></span></button>
     <button data-mod="2">Módulo 2<br>Metodología <span class="stamp-mini" id="stamp2"></span></button>
     <button data-mod="3">Módulo 3<br>Sprint <span class="stamp-mini" id="stamp3"></span></button>
@@ -549,6 +588,7 @@ function render(){
   if(currentMod===6) renderModulo6();
   if(currentMod===7) renderModulo7();
   if(currentMod===8) renderModulo8();
+  if(currentMod===9) renderApuntes();
 }
 
 /* ============================================================
@@ -2593,6 +2633,195 @@ function renderModulo8(){
     b.addEventListener("click", ()=> elegirOpcionM8(op));
     cont.appendChild(b);
   });
+}
+
+/* ============================================================
+   APUNTES — Teoría de Análisis y Metodología de Sistemas
+   ============================================================ */
+const APUNTES = [
+  {
+    id:"a1", titulo:"1. ¿Qué es Análisis y Metodología de Sistemas?",
+    contenido:`
+      <p>El <strong>Análisis de Sistemas</strong> es la disciplina que se ocupa de entender un problema de negocio o una necesidad organizacional, y traducirla en una especificación clara de lo que un sistema de información debe hacer. La <strong>Metodología</strong> es el conjunto de pasos, técnicas y buenas prácticas que ordenan ese trabajo, desde la idea inicial hasta el sistema funcionando en producción.</p>
+      <p>El <strong>Ciclo de Vida del Desarrollo de Software (SDLC)</strong> agrupa las etapas que casi todo proyecto atraviesa, aunque el orden y la forma de encararlas cambien según la metodología elegida:</p>
+      <ul>
+        <li><strong>Relevamiento:</strong> entender qué necesita el cliente/usuario.</li>
+        <li><strong>Diseño:</strong> definir cómo se va a construir la solución.</li>
+        <li><strong>Desarrollo:</strong> programar el sistema.</li>
+        <li><strong>Testing:</strong> verificar que funcione como se espera.</li>
+        <li><strong>Implementación/Despliegue:</strong> poner el sistema en producción.</li>
+        <li><strong>Mantenimiento:</strong> sostenerlo y mejorarlo con el tiempo.</li>
+      </ul>
+      <p>El <strong>analista de sistemas</strong> es quien actúa de puente entre el mundo del negocio (que habla en términos de procesos, necesidades y problemas) y el mundo técnico (que habla en términos de datos, funciones y arquitectura). Su trabajo no es solo "levantar requisitos", sino entender el problema real detrás de cada pedido.</p>
+    `
+  },
+  {
+    id:"a2", titulo:"2. Relevamiento de requerimientos",
+    contenido:`
+      <h4>Requisitos funcionales vs. no funcionales</h4>
+      <p>Un <strong>requisito funcional</strong> describe algo que el sistema debe hacer (por ejemplo, "el sistema debe permitir registrar una venta"). Un <strong>requisito no funcional</strong> describe una cualidad o restricción de cómo debe comportarse (por ejemplo, "el sistema debe responder en menos de 2 segundos", o "debe soportar 500 usuarios simultáneos").</p>
+      <h4>Técnicas de relevamiento</h4>
+      <ul>
+        <li><strong>Entrevistas:</strong> pueden ser estructuradas (preguntas fijas), semiestructuradas (guía flexible) o abiertas (exploratorias). Son la técnica más usada porque permiten repreguntar y profundizar.</li>
+        <li><strong>Cuestionarios/encuestas:</strong> útiles cuando hay que relevar a muchos usuarios a la vez, aunque dan menos profundidad que una entrevista.</li>
+        <li><strong>Observación directa:</strong> ver cómo la gente trabaja realmente en el día a día, que muchas veces difiere de cómo dicen que trabajan.</li>
+        <li><strong>Análisis de documentación existente:</strong> manuales, formularios, sistemas anteriores, normativas.</li>
+        <li><strong>Prototipado:</strong> mostrar una maqueta o boceto para que el usuario reaccione y afine el pedido.</li>
+      </ul>
+      <h4>Buenas prácticas</h4>
+      <ul>
+        <li>Preferir preguntas abiertas ("¿cómo hace hoy este proceso?") por sobre preguntas cerradas que sugieren la respuesta.</li>
+        <li>Distinguir el <strong>pedido explícito</strong> (lo que el cliente dice que quiere) de la <strong>necesidad real</strong> (el problema de fondo que busca resolver).</li>
+        <li>Validar lo relevado con el cliente antes de avanzar a diseño, para confirmar que se entendió bien.</li>
+        <li>Relevar con todos los actores relevantes, no solo con quien pidió el sistema (por ejemplo, también con quienes lo van a usar día a día).</li>
+      </ul>
+      <p><strong>Error común:</strong> relevar soluciones en vez de problemas (el cliente dice "necesito un botón para exportar a Excel" cuando en realidad necesita "poder mostrarle un reporte a sus socios"). Un buen analista indaga el problema de fondo antes de aceptar la solución propuesta por el cliente.</p>
+    `
+  },
+  {
+    id:"a3", titulo:"3. Metodologías de desarrollo",
+    contenido:`
+      <h4>Cascada (Waterfall)</h4>
+      <p>Modelo secuencial: cada fase (relevamiento, diseño, desarrollo, testing, implementación) se completa antes de pasar a la siguiente. Ventaja: mucha documentación y previsibilidad. Desventaja: es rígido ante cambios, y los errores de relevamiento se detectan recién muy tarde en el proyecto.</p>
+      <h4>Metodologías ágiles</h4>
+      <p>Se basan en el <strong>Manifiesto Ágil</strong>: valorar más a los individuos e interacciones que a los procesos y herramientas, el software funcionando por sobre la documentación exhaustiva, la colaboración con el cliente por sobre la negociación contractual, y responder al cambio por sobre seguir un plan rígido. Se trabaja en iteraciones cortas con entregas frecuentes y feedback continuo.</p>
+      <h4>Scrum</h4>
+      <ul>
+        <li><strong>Roles:</strong> Product Owner (prioriza el backlog y representa al negocio), Scrum Master (facilita el proceso y remueve obstáculos), Equipo de desarrollo (construye el producto).</li>
+        <li><strong>Eventos:</strong> Sprint Planning (planificar el sprint), Daily Scrum (reunión diaria breve de sincronización), Sprint Review (mostrar lo construido), Retrospectiva (reflexionar sobre cómo mejorar el proceso).</li>
+        <li><strong>Artefactos:</strong> Product Backlog (lista priorizada de todo lo pendiente), Sprint Backlog (lo que se compromete a hacer en el sprint actual), Incremento (lo entregado al final del sprint).</li>
+      </ul>
+      <h4>Kanban</h4>
+      <p>Se basa en un tablero visual con columnas (por ejemplo: Por hacer, En curso, Hecho) y límites de trabajo en curso (WIP) para evitar la sobrecarga. A diferencia de Scrum, no trabaja en sprints con duración fija, sino con un flujo continuo de tareas.</p>
+      <h4>¿Cómo elegir metodología?</h4>
+      <p>Depende de: qué tan estables son los requisitos (cascada funciona mejor si son estables; ágil si van a cambiar), el tamaño del equipo, la disponibilidad del cliente para dar feedback frecuente, y la criticidad del sistema (sistemas muy regulados a veces necesitan más documentación formal, típica de cascada).</p>
+    `
+  },
+  {
+    id:"a4", titulo:"4. Planificación y Sprints",
+    contenido:`
+      <h4>Backlog</h4>
+      <p>Es la lista de todo el trabajo pendiente de un proyecto, ordenada por prioridad. Se prioriza combinando <strong>valor de negocio</strong>, <strong>esfuerzo</strong> estimado y <strong>riesgo</strong>. Técnicas como MoSCoW (Must have / Should have / Could have / Won't have) o una matriz valor/esfuerzo ayudan a ordenar el backlog quando hay muchos pedidos en competencia.</p>
+      <h4>Historias de usuario</h4>
+      <p>Formato típico: <em>"Como [rol], quiero [funcionalidad], para [beneficio]"</em>. Por ejemplo: "Como cliente, quiero recibir un email de confirmación, para saber que mi pedido se registró correctamente". Cada historia suele tener <strong>criterios de aceptación</strong>: condiciones concretas que definen cuándo se considera terminada.</p>
+      <h4>Estimación</h4>
+      <p>Los equipos ágiles suelen estimar el esfuerzo relativo de cada tarea en <strong>story points</strong> (una medida abstracta, no en horas), muchas veces usando dinámicas como el <strong>Planning Poker</strong>. Con el tiempo, se calcula la <strong>velocity</strong> del equipo (cuántos puntos completa en promedio por sprint), lo que permite planificar sprints futuros con más precisión.</p>
+      <h4>El Sprint</h4>
+      <p>Es un período de tiempo fijo (típicamente entre 1 y 4 semanas) durante el cual el equipo se compromete a completar un conjunto de historias del backlog. Al final, debe cumplirse la <strong>Definición de Hecho (Definition of Done)</strong>: un checklist acordado de qué significa que algo está realmente terminado (por ejemplo: código revisado, probado, documentado y desplegado en un ambiente de pruebas).</p>
+    `
+  },
+  {
+    id:"a5", titulo:"5. Diseño de sistemas",
+    contenido:`
+      <h4>Modelo de datos</h4>
+      <p>Se modela en términos de <strong>entidades</strong> (por ejemplo, Cliente, Pedido), <strong>atributos</strong> (nombre, fecha) y <strong>relaciones</strong> entre entidades, con su <strong>cardinalidad</strong> (uno a uno, uno a muchos, muchos a muchos). La <strong>normalización</strong> es el proceso de organizar los datos para evitar redundancia e inconsistencias, aplicando reglas progresivas (1ª, 2ª y 3ª forma normal, a grandes rasgos).</p>
+      <h4>Diagramas UML</h4>
+      <ul>
+        <li><strong>Casos de uso:</strong> muestran qué puede hacer un actor (persona o sistema externo) con el sistema. Un actor no tiene que ser necesariamente humano: un proceso automático también puede ser un actor.</li>
+        <li><strong>Diagrama de clases:</strong> representa las clases del sistema, sus atributos, métodos y relaciones (herencia, asociación, composición). La herencia se usa cuando varias entidades comparten atributos comunes y alguna agrega comportamiento propio.</li>
+      </ul>
+      <h4>Arquitectura de software</h4>
+      <p>Decide cómo se organizan los componentes del sistema: <strong>monolito</strong> (todo en una sola aplicación, más simple de mantener en proyectos chicos) vs. <strong>microservicios</strong> (componentes independientes, útil en sistemas grandes que necesitan escalar partes por separado, pero con más complejidad operativa). También se suele organizar en <strong>capas</strong>: presentación (interfaz), lógica de negocio, y datos.</p>
+      <h4>Diseño de interfaz (UI/UX)</h4>
+      <p>Buenas prácticas: consistencia visual, dar feedback claro al usuario ante cada acción, minimizar la carga cognitiva, y validar el diseño con <strong>wireframes</strong> o <strong>mockups</strong> antes de programar.</p>
+      <h4>Diseño de API y seguridad</h4>
+      <p>En una API REST, cada método HTTP tiene un propósito: <strong>GET</strong> para consultar, <strong>POST</strong> para crear, <strong>PUT/PATCH</strong> para actualizar, <strong>DELETE</strong> para eliminar. En materia de seguridad, un principio básico es nunca guardar contraseñas en texto plano: se guarda un <strong>hash con salt</strong>, de forma que ni el propio sistema pueda recuperar la contraseña original.</p>
+    `
+  },
+  {
+    id:"a6", titulo:"6. Testing",
+    contenido:`
+      <h4>Niveles de prueba</h4>
+      <ul>
+        <li><strong>Prueba unitaria:</strong> evalúa una función o unidad de código aislada, sin dependencias externas.</li>
+        <li><strong>Prueba de integración:</strong> evalúa cómo interactúan varios componentes entre sí.</li>
+        <li><strong>Prueba de sistema:</strong> evalúa el sistema completo de punta a punta.</li>
+        <li><strong>Prueba de aceptación:</strong> la realiza el usuario final, validando que el sistema cumple sus necesidades de negocio.</li>
+      </ul>
+      <h4>Técnicas de caja negra</h4>
+      <p><strong>Clases de equivalencia:</strong> agrupar valores de entrada que deberían comportarse igual, para no probar cada valor posible sino un representante de cada grupo. <strong>Valores límite (boundary testing):</strong> probar justo antes y después de cada límite de un rango, ya que ahí suelen esconderse errores de comparación (usar "&gt;" en vez de "&gt;=", por ejemplo).</p>
+      <h4>Caja blanca</h4>
+      <p>A diferencia de la caja negra (que prueba el sistema desde afuera, sin mirar el código), la caja blanca se basa en conocer la estructura interna del código para diseñar los casos de prueba, buscando cubrir distintos caminos posibles de ejecución.</p>
+      <h4>Otras pruebas importantes</h4>
+      <ul>
+        <li><strong>Regresión:</strong> repetir pruebas ya existentes después de un cambio, para confirmar que no se rompió algo que antes funcionaba.</li>
+        <li><strong>Rendimiento:</strong> evaluar tiempos de respuesta y comportamiento bajo carga.</li>
+        <li><strong>Seguridad:</strong> buscar vulnerabilidades explotables.</li>
+      </ul>
+      <h4>Gestión de bugs</h4>
+      <p>Es clave distinguir <strong>severidad</strong> (qué tan grave es el impacto técnico o de negocio de un bug) de <strong>prioridad</strong> (qué tan urgente es corregirlo). Un bug que afecta el dinero de los usuarios, por ejemplo, es de alta severidad y alta prioridad, aunque sea poco frecuente; un detalle visual menor es de baja severidad aunque sea muy visible.</p>
+    `
+  },
+  {
+    id:"a7", titulo:"7. Implementación y despliegue",
+    contenido:`
+      <h4>Estrategias de despliegue</h4>
+      <ul>
+        <li><strong>Big bang:</strong> se reemplaza el sistema viejo por el nuevo de una sola vez, para todos los usuarios.</li>
+        <li><strong>Paralelo:</strong> el sistema viejo y el nuevo funcionan al mismo tiempo por un período, para comparar resultados antes de apagar el viejo.</li>
+        <li><strong>Piloto:</strong> se prueba primero con un grupo reducido de usuarios antes de expandir a todos.</li>
+        <li><strong>Por fases:</strong> se despliega módulo por módulo, en etapas.</li>
+      </ul>
+      <h4>Buenas prácticas antes y durante el despliegue</h4>
+      <ul>
+        <li><strong>Backup:</strong> siempre hacer una copia de seguridad completa antes de aplicar cambios que toquen datos reales, especialmente migraciones de base de datos.</li>
+        <li><strong>Ambiente de staging:</strong> validar los cambios en un ambiente lo más parecido posible a producción antes del pase final.</li>
+        <li><strong>Ventana de mantenimiento:</strong> programar los despliegues que requieran inactividad en horarios de bajo uso, avisando con anticipación.</li>
+        <li><strong>Plan de rollback:</strong> tener preparado (y probado) cómo volver a la versión anterior si algo sale mal.</li>
+        <li><strong>Capacitación a usuarios:</strong> anticipar cambios grandes de interfaz con comunicación y guías rápidas.</li>
+        <li><strong>Monitoreo post-despliegue:</strong> vigilar logs y métricas de error durante un tiempo después de cada lanzamiento.</li>
+      </ul>
+      <h4>CI/CD (introducción)</h4>
+      <p>La <strong>integración continua (CI)</strong> consiste en integrar y probar automáticamente los cambios de código con frecuencia. El <strong>despliegue continuo (CD)</strong> extiende esa automatización hasta el despliegue en producción, reduciendo el trabajo manual y el riesgo de errores humanos en el proceso.</p>
+    `
+  },
+  {
+    id:"a8", titulo:"8. Mantenimiento",
+    contenido:`
+      <p>El mantenimiento es la etapa más larga del ciclo de vida de un sistema, y se suele clasificar en cuatro tipos:</p>
+      <ul>
+        <li><strong>Correctivo:</strong> corregir errores (bugs) detectados después de la puesta en producción.</li>
+        <li><strong>Adaptativo:</strong> adaptar el sistema a cambios del entorno (por ejemplo, una nueva versión del sistema operativo, o un cambio en una normativa legal).</li>
+        <li><strong>Perfectivo:</strong> mejoras de rendimiento o nuevas funcionalidades pedidas por los usuarios, sin que haya un error de por medio.</li>
+        <li><strong>Preventivo:</strong> refactorizar o reestructurar código para evitar problemas futuros, aunque el sistema funcione bien hoy (reducir la "deuda técnica").</li>
+      </ul>
+      <p>Una buena documentación durante las etapas anteriores (relevamiento, diseño, desarrollo) facilita enormemente el mantenimiento futuro, sobre todo cuando quien mantiene el sistema no es la misma persona que lo desarrolló originalmente.</p>
+    `
+  },
+  {
+    id:"a9", titulo:"9. Habilidades del analista (más allá de lo técnico)",
+    contenido:`
+      <p>Gran parte del trabajo de un analista de sistemas no es puramente técnico, sino de <strong>comunicación y gestión</strong>:</p>
+      <ul>
+        <li><strong>Comunicación con distintos interlocutores:</strong> saber explicar lo mismo de forma distinta a un gerente, a un usuario final o a un desarrollador.</li>
+        <li><strong>Gestión de conflictos y expectativas:</strong> mediar entre áreas con pedidos contradictorios, o entre lo que el cliente espera y lo que es técnicamente viable en el tiempo disponible.</li>
+        <li><strong>Priorización y negociación de alcance:</strong> ayudar al cliente a decidir qué construir primero cuando no se puede hacer todo a la vez, y gestionar los cambios de alcance ("scope creep") de forma ordenada.</li>
+        <li><strong>Ética profesional:</strong> ser transparente sobre riesgos y limitaciones, y no prometer algo que se sabe inviable con tal de quedar bien en una reunión.</li>
+      </ul>
+      <p>Estas habilidades son las que se practican en los módulos <strong>Extra</strong> de esta app: Jefes y Problemas del Analista.</p>
+    `
+  }
+];
+
+function renderApuntes(){
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+
+  const items = APUNTES.map(a=>`
+    <details class="apunte">
+      <summary>${a.titulo}</summary>
+      <div class="apunte-cuerpo">${a.contenido}</div>
+    </details>
+  `).join("");
+
+  sheet.innerHTML = `
+    <span class="eyebrow">Apuntes</span>
+    <h2>Teoría de Análisis y Metodología de Sistemas</h2>
+    <p class="lead">Un repaso del contenido teórico detrás de cada módulo práctico de la app. Tocá cada tema para desplegarlo.</p>
+    ${items}
+  `;
+
+  main.appendChild(sheet);
 }
 
 /* ============================================================
