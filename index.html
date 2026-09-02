@@ -307,6 +307,35 @@
   }
   .indice-grupo-titulo:first-of-type{margin-top:6px;}
 
+  .progreso-general{
+    background:var(--paper-dark);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    margin:16px 0 8px 0;
+  }
+  .progreso-general-header{
+    display:flex;
+    justify-content:space-between;
+    font-family:'Courier New',monospace;
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:6px;
+  }
+  .indice-badge{
+    display:inline-block;
+    font-family:'Courier New',monospace;
+    font-size:.65rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    padding:2px 8px;
+    border-radius:10px;
+    margin-top:6px;
+  }
+  .indice-badge.ok{background:var(--teal); color:#fff;}
+  .indice-badge.pendiente{background:var(--paper-dark); color:var(--ink-soft); border:1px solid var(--line);}
+
   /* Acordeón de Apuntes */
   .apunte{
     background:#fff;
@@ -3319,21 +3348,78 @@ function irASeccion(mod){
   render();
 }
 
+// Devuelve true/false si la sección tiene tracking de completitud, o null si no aplica (ej. Apuntes)
+function seccionCompletada(mod){
+  switch(mod){
+    case 1: return !!state.mod1.completado;
+    case 2: return !!state.mod2.completado;
+    case 3: return !!state.mod3.completado;
+    case 4: return !!state.mod4.completado;
+    case 5: return !!state.mod5.completado;
+    case 6: return !!state.mod6.completado;
+    case 7: return !!state.mod7.completado;
+    case 8: return !!state.mod8.completado;
+    case 10: return !!(state.mod10 && state.mod10.completado);
+    case 11: return !!state.mod11.completado;
+    default: return null;
+  }
+}
+
+// Puntaje (%) de la sección, si aplica
+function scoreDeSeccion(mod){
+  if(mod===2) return state.mod2.score;
+  if(mod===3) return state.mod3.score;
+  if(mod===5) return state.mod5.score;
+  if(mod===6) return state.mod6.score;
+  if(mod===7) return state.mod7.score;
+  if(mod===11) return state.mod11.score;
+  return null;
+}
+
+const SECCIONES_RASTREADAS = [1,2,3,4,5,6,7,8,10,11];
+
+function progresoGeneral(){
+  const total = SECCIONES_RASTREADAS.length;
+  const hechas = SECCIONES_RASTREADAS.filter(m=>seccionCompletada(m)).length;
+  return {hechas, total, pct: Math.round((hechas/total)*100)};
+}
+
+function mensajeMotivacional(hechas, total){
+  if(hechas===0) return "Todavía no completaste ninguna sección. Elegí una y arrancá cuando quieras — no hay apuro.";
+  if(hechas===total) return "¡Completaste todo el simulador! Excelente recorrido por las fases de Análisis y Metodología de Sistemas.";
+  if(hechas>=total-2) return "Ya casi lo tenés — te quedan muy pocas secciones para completar todo.";
+  if(hechas>=Math.ceil(total/2)) return "Vas por más de la mitad del recorrido. Seguí así.";
+  return "Vas arrancando bien. Cada sección completada queda guardada en tu progreso.";
+}
+
 function renderIndice(){
   const sheet = document.createElement("div");
   sheet.className = "sheet";
 
+  const prog = progresoGeneral();
+
   const gruposHtml = INDICE_GRUPOS.map((g, gi)=>{
-    const itemsHtml = g.items.map((item, ii)=>`
+    const itemsHtml = g.items.map((item, ii)=>{
+      const completa = seccionCompletada(item.mod);
+      const score = scoreDeSeccion(item.mod);
+      let badge = "";
+      if(completa === true){
+        badge = `<span class="indice-badge ok">✓ Completo${score!==null ? ` · ${score}%` : ''}</span>`;
+      } else if(completa === false){
+        badge = `<span class="indice-badge pendiente">Pendiente</span>`;
+      }
+      return `
       <li class="indice-item" data-mod="${item.mod}">
         <div class="indice-texto">
           <span class="indice-num">${gi+1}.${ii+1}</span>
           <h3>${item.titulo}</h3>
           <p>${item.texto}</p>
+          ${badge}
         </div>
         <button class="secondary indice-ir" data-mod="${item.mod}">Ir</button>
       </li>
-    `).join("");
+    `;
+    }).join("");
     return `<div class="indice-grupo-titulo">${g.grupo}</div><ul class="indice-lista">${itemsHtml}</ul>`;
   }).join("");
 
@@ -3341,6 +3427,16 @@ function renderIndice(){
     <span class="eyebrow">Índice</span>
     <h2>¿Por dónde empezar?</h2>
     <p class="lead">Este es el orden sugerido para recorrer la app. No es obligatorio seguirlo al pie de la letra, pero te ayuda a no perderte entre tantas secciones.</p>
+
+    <div class="progreso-general">
+      <div class="progreso-general-header">
+        <span>Tu progreso</span>
+        <span>${prog.hechas} / ${prog.total} secciones</span>
+      </div>
+      <div class="barra-caso"><div class="fill" style="width:${prog.pct}%"></div></div>
+      <p class="lead" style="margin:6px 0 0 0; font-size:.85rem;">${mensajeMotivacional(prog.hechas, prog.total)}</p>
+    </div>
+
     ${gruposHtml}
   `;
 
