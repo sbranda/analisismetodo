@@ -368,6 +368,29 @@
   .apunte-cuerpo li{margin-bottom:4px; line-height:1.5;}
   .apunte-cuerpo p{margin:6px 0;}
   .apunte-cuerpo strong{color:var(--navy);}
+  .apunte-diagrama{
+    display:block;
+    margin:16px auto;
+    max-width:280px;
+  }
+  .apunte-diagrama-caption{
+    text-align:center;
+    font-size:.75rem;
+    color:var(--ink-soft);
+    font-style:italic;
+    margin:-8px 0 10px 0;
+  }
+  .leyenda-piramide{list-style:none; padding:0; margin:8px 0 0 0;}
+  .leyenda-piramide li{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    margin-bottom:6px;
+    font-size:.85rem;
+  }
+  .leyenda-piramide .punto{
+    width:12px; height:12px; border-radius:3px; flex-shrink:0; margin-top:4px;
+  }
 
   /* Caso Real */
   .fase-tag{
@@ -2769,6 +2792,25 @@ const APUNTES = [
         <li><strong>Implementación/Despliegue:</strong> poner el sistema en producción.</li>
         <li><strong>Mantenimiento:</strong> sostenerlo y mejorarlo con el tiempo.</li>
       </ul>
+      <svg class="apunte-diagrama" viewBox="0 0 320 560" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="flechaSDLC" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" style="fill:var(--navy)"/></marker></defs>
+        <g font-family="Georgia, serif" font-size="14" text-anchor="middle">
+          <rect x="20" y="10" width="240" height="55" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="43" style="fill:var(--navy)">Relevamiento</text>
+          <rect x="20" y="100" width="240" height="55" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="133" style="fill:var(--navy)">Diseño</text>
+          <rect x="20" y="190" width="240" height="55" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="223" style="fill:var(--navy)">Desarrollo</text>
+          <rect x="20" y="280" width="240" height="55" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="313" style="fill:var(--navy)">Testing</text>
+          <rect x="20" y="370" width="240" height="55" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="403" style="fill:var(--navy)">Despliegue</text>
+          <rect x="20" y="460" width="240" height="55" rx="6" style="fill:var(--teal);stroke:var(--navy);stroke-width:2"/><text x="140" y="493" style="fill:#fff">Mantenimiento</text>
+        </g>
+        <line x1="140" y1="65" x2="140" y2="98" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaSDLC)"/>
+        <line x1="140" y1="155" x2="140" y2="188" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaSDLC)"/>
+        <line x1="140" y1="245" x2="140" y2="278" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaSDLC)"/>
+        <line x1="140" y1="335" x2="140" y2="368" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaSDLC)"/>
+        <line x1="140" y1="425" x2="140" y2="458" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaSDLC)"/>
+        <path d="M260,487 L292,487 L292,37 L263,37" style="fill:none;stroke:var(--stamp);stroke-width:2;stroke-dasharray:5,4" marker-end="url(#flechaSDLC)"/>
+        <text x="308" y="270" transform="rotate(-90 308 270)" text-anchor="middle" font-size="10" style="fill:var(--stamp)">puede generar nuevos requerimientos</text>
+      </svg>
+      <p class="apunte-diagrama-caption">El ciclo de vida del software: cada fase alimenta a la siguiente, y el mantenimiento puede volver a disparar un nuevo relevamiento.</p>
       <p>El <strong>analista de sistemas</strong> es quien actúa de puente entre el mundo del negocio (que habla en términos de procesos, necesidades y problemas) y el mundo técnico (que habla en términos de datos, funciones y arquitectura). Su trabajo no es solo "levantar requisitos", sino entender el problema real detrás de cada pedido.</p>
     `
   },
@@ -2800,8 +2842,23 @@ const APUNTES = [
     contenido:`
       <h4>Cascada (Waterfall)</h4>
       <p>Modelo secuencial: cada fase (relevamiento, diseño, desarrollo, testing, implementación) se completa antes de pasar a la siguiente. Ventaja: mucha documentación y previsibilidad. Desventaja: es rígido ante cambios, y los errores de relevamiento se detectan recién muy tarde en el proyecto.</p>
+      <svg class="apunte-diagrama" viewBox="0 0 320 340" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="flechaCascada" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" style="fill:var(--navy)"/></marker></defs>
+        <g font-family="Georgia, serif" font-size="13" text-anchor="middle">
+          <rect x="20" y="10" width="240" height="45" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="38" style="fill:var(--navy)">Relevamiento</text>
+          <rect x="20" y="80" width="240" height="45" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="108" style="fill:var(--navy)">Diseño</text>
+          <rect x="20" y="150" width="240" height="45" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="178" style="fill:var(--navy)">Desarrollo</text>
+          <rect x="20" y="220" width="240" height="45" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="248" style="fill:var(--navy)">Testing</text>
+          <rect x="20" y="290" width="240" height="40" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="140" y="315" style="fill:var(--navy)">Despliegue</text>
+        </g>
+        <line x1="140" y1="55" x2="140" y2="78" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaCascada)"/>
+        <line x1="140" y1="125" x2="140" y2="148" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaCascada)"/>
+        <line x1="140" y1="195" x2="140" y2="218" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaCascada)"/>
+        <line x1="140" y1="265" x2="140" y2="288" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaCascada)"/>
+      </svg>
+      <p class="apunte-diagrama-caption">Cascada: flujo de una sola dirección. No se avanza a la siguiente fase sin cerrar la anterior, y no hay vuelta atrás sin replanificar todo.</p>
       <h4>Metodologías ágiles</h4>
-      <p>Se basan en el <strong>Manifiesto Ágil</strong>: valorar más a los individuos e interacciones que a los procesos y herramientas, el software funcionando por sobre la documentación exhaustiva, la colaboración con el cliente por sobre la negociación contractual, y responder al cambio por sobre seguir un plan rígido. Se trabaja en iteraciones cortas con entregas frecuentes y feedback continuo.</p>
+      <p>Se basan en el <strong>Manifiesto Ágil</strong>: valorar más a los individuos e interacciones que a los procesos y herramientas, el software funcionando por sobre la documentación exhaustiva, la colaboración con el cliente por sobre la negociación contractual, y responder al cambio por sobre seguir un plan rígido. A diferencia de la cascada, no se espera al final del proyecto para mostrar resultados: se trabaja en iteraciones cortas con entregas frecuentes y feedback continuo.</p>
       <h4>Scrum</h4>
       <ul>
         <li><strong>Roles:</strong> Product Owner (prioriza el backlog y representa al negocio), Scrum Master (facilita el proceso y remueve obstáculos), Equipo de desarrollo (construye el producto).</li>
@@ -2825,6 +2882,21 @@ const APUNTES = [
       <p>Los equipos ágiles suelen estimar el esfuerzo relativo de cada tarea en <strong>story points</strong> (una medida abstracta, no en horas), muchas veces usando dinámicas como el <strong>Planning Poker</strong>. Con el tiempo, se calcula la <strong>velocity</strong> del equipo (cuántos puntos completa en promedio por sprint), lo que permite planificar sprints futuros con más precisión.</p>
       <h4>El Sprint</h4>
       <p>Es un período de tiempo fijo (típicamente entre 1 y 4 semanas) durante el cual el equipo se compromete a completar un conjunto de historias del backlog. Al final, debe cumplirse la <strong>Definición de Hecho (Definition of Done)</strong>: un checklist acordado de qué significa que algo está realmente terminado (por ejemplo: código revisado, probado, documentado y desplegado en un ambiente de pruebas).</p>
+      <svg class="apunte-diagrama" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="flechaSprint" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" style="fill:var(--teal)"/></marker></defs>
+        <g font-family="Georgia, serif" font-size="13" text-anchor="middle">
+          <rect x="20" y="10" width="240" height="55" rx="6" style="fill:#fff;stroke:var(--teal);stroke-width:2"/><text x="140" y="43" style="fill:var(--navy)">Sprint Planning</text>
+          <rect x="20" y="90" width="240" height="55" rx="6" style="fill:#fff;stroke:var(--teal);stroke-width:2"/><text x="140" y="123" style="fill:var(--navy)">Sprint (Daily Scrum)</text>
+          <rect x="20" y="170" width="240" height="55" rx="6" style="fill:#fff;stroke:var(--teal);stroke-width:2"/><text x="140" y="203" style="fill:var(--navy)">Sprint Review</text>
+          <rect x="20" y="250" width="240" height="55" rx="6" style="fill:var(--teal);stroke:var(--teal);stroke-width:2"/><text x="140" y="283" style="fill:#fff">Retrospectiva</text>
+        </g>
+        <line x1="140" y1="65" x2="140" y2="88" style="stroke:var(--teal);stroke-width:2" marker-end="url(#flechaSprint)"/>
+        <line x1="140" y1="145" x2="140" y2="168" style="stroke:var(--teal);stroke-width:2" marker-end="url(#flechaSprint)"/>
+        <line x1="140" y1="225" x2="140" y2="248" style="stroke:var(--teal);stroke-width:2" marker-end="url(#flechaSprint)"/>
+        <path d="M260,277 L292,277 L292,37 L263,37" style="fill:none;stroke:var(--stamp);stroke-width:2;stroke-dasharray:5,4" marker-end="url(#flechaSprint)"/>
+        <text x="308" y="160" transform="rotate(-90 308 160)" text-anchor="middle" font-size="10" style="fill:var(--stamp)">se repite cada sprint</text>
+      </svg>
+      <p class="apunte-diagrama-caption">El ciclo de Scrum se repite sprint tras sprint: se planifica, se construye, se muestra lo hecho y se reflexiona sobre cómo mejorar.</p>
     `
   },
   {
@@ -2832,6 +2904,25 @@ const APUNTES = [
     contenido:`
       <h4>Modelo de datos</h4>
       <p>Se modela en términos de <strong>entidades</strong> (por ejemplo, Cliente, Pedido), <strong>atributos</strong> (nombre, fecha) y <strong>relaciones</strong> entre entidades, con su <strong>cardinalidad</strong> (uno a uno, uno a muchos, muchos a muchos). La <strong>normalización</strong> es el proceso de organizar los datos para evitar redundancia e inconsistencias, aplicando reglas progresivas (1ª, 2ª y 3ª forma normal, a grandes rasgos).</p>
+      <svg class="apunte-diagrama" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="flechaER" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" style="fill:var(--navy)"/></marker></defs>
+        <g font-family="Georgia, serif" font-size="14" text-anchor="middle">
+          <rect x="50" y="10" width="200" height="50" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="150" y="41" style="fill:var(--navy)">Cliente</text>
+          <rect x="50" y="130" width="200" height="50" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="150" y="161" style="fill:var(--navy)">Pedido</text>
+          <rect x="70" y="250" width="160" height="45" rx="6" style="fill:var(--paper-dark);stroke:var(--navy);stroke-width:2;stroke-dasharray:4,3"/><text x="150" y="278" font-size="12" style="fill:var(--navy)">DetallePedido</text>
+          <rect x="50" y="360" width="200" height="50" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="150" y="391" style="fill:var(--navy)">Producto</text>
+        </g>
+        <line x1="150" y1="60" x2="150" y2="128" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaER)"/>
+        <text x="115" y="80" font-size="12" style="fill:var(--stamp)">1</text>
+        <text x="115" y="118" font-size="12" style="fill:var(--stamp)">N</text>
+        <line x1="150" y1="180" x2="150" y2="248" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaER)"/>
+        <text x="115" y="200" font-size="12" style="fill:var(--stamp)">1</text>
+        <text x="115" y="238" font-size="12" style="fill:var(--stamp)">N</text>
+        <line x1="150" y1="295" x2="150" y2="358" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaER)"/>
+        <text x="115" y="315" font-size="12" style="fill:var(--stamp)">N</text>
+        <text x="115" y="350" font-size="12" style="fill:var(--stamp)">1</text>
+      </svg>
+      <p class="apunte-diagrama-caption">Un cliente tiene muchos pedidos (1 a N). La relación muchos a muchos entre Pedido y Producto se resuelve con una tabla intermedia, DetallePedido.</p>
       <h4>Diagramas UML</h4>
       <ul>
         <li><strong>Casos de uso:</strong> muestran qué puede hacer un actor (persona o sistema externo) con el sistema. Un actor no tiene que ser necesariamente humano: un proceso automático también puede ser un actor.</li>
@@ -2855,6 +2946,17 @@ const APUNTES = [
         <li><strong>Prueba de sistema:</strong> evalúa el sistema completo de punta a punta.</li>
         <li><strong>Prueba de aceptación:</strong> la realiza el usuario final, validando que el sistema cumple sus necesidades de negocio.</li>
       </ul>
+      <svg class="apunte-diagrama" viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,210 280,210 220,140 80,140" style="fill:var(--teal)"/>
+        <polygon points="80,140 220,140 175,70 125,70" style="fill:var(--mustard)"/>
+        <polygon points="125,70 175,70 150,10" style="fill:var(--stamp)"/>
+      </svg>
+      <ul class="leyenda-piramide">
+        <li><span class="punto" style="background:var(--teal)"></span><span><strong>Unitarias</strong> — muchas, rápidas y baratas de ejecutar. Son la base de la pirámide.</span></li>
+        <li><span class="punto" style="background:var(--mustard)"></span><span><strong>Integración</strong> — menos cantidad, verifican que los componentes trabajen bien juntos.</span></li>
+        <li><span class="punto" style="background:var(--stamp)"></span><span><strong>Aceptación / E2E</strong> — pocas, lentas y más caras de mantener, pero validan el flujo completo.</span></li>
+      </ul>
+      <p class="apunte-diagrama-caption">La pirámide de testing: conviene tener muchas pruebas unitarias rápidas en la base, y pocas pruebas end-to-end lentas en la punta.</p>
       <h4>Técnicas de caja negra</h4>
       <p><strong>Clases de equivalencia:</strong> agrupar valores de entrada que deberían comportarse igual, para no probar cada valor posible sino un representante de cada grupo. <strong>Valores límite (boundary testing):</strong> probar justo antes y después de cada límite de un rango, ya que ahí suelen esconderse errores de comparación (usar "&gt;" en vez de "&gt;=", por ejemplo).</p>
       <h4>Caja blanca</h4>
@@ -2879,6 +2981,19 @@ const APUNTES = [
         <li><strong>Piloto:</strong> se prueba primero con un grupo reducido de usuarios antes de expandir a todos.</li>
         <li><strong>Por fases:</strong> se despliega módulo por módulo, en etapas.</li>
       </ul>
+      <svg class="apunte-diagrama" viewBox="0 0 320 360" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="flechaDespliegue" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" style="fill:var(--navy)"/></marker></defs>
+        <g font-family="Georgia, serif" font-size="14" text-anchor="middle">
+          <rect x="40" y="10" width="220" height="55" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="150" y="43" style="fill:var(--navy)">Desarrollo</text>
+          <rect x="40" y="130" width="220" height="55" rx="6" style="fill:#fff;stroke:var(--navy);stroke-width:2"/><text x="150" y="163" style="fill:var(--navy)">Staging (pruebas)</text>
+          <rect x="40" y="250" width="220" height="55" rx="6" style="fill:var(--stamp);stroke:var(--navy);stroke-width:2"/><text x="150" y="283" style="fill:#fff">Producción</text>
+        </g>
+        <line x1="150" y1="65" x2="150" y2="128" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaDespliegue)"/>
+        <line x1="150" y1="185" x2="150" y2="248" style="stroke:var(--navy);stroke-width:2" marker-end="url(#flechaDespliegue)"/>
+        <path d="M262,277 L295,277 L295,157 L263,157" style="fill:none;stroke:var(--mustard);stroke-width:2;stroke-dasharray:5,4" marker-end="url(#flechaDespliegue)"/>
+        <text x="310" y="220" transform="rotate(-90 310 220)" text-anchor="middle" font-size="10" style="fill:var(--mustard)">rollback si algo falla</text>
+      </svg>
+      <p class="apunte-diagrama-caption">El código avanza de desarrollo a staging y recién después a producción. Si algo sale mal, el plan de rollback permite volver atrás.</p>
       <h4>Buenas prácticas antes y durante el despliegue</h4>
       <ul>
         <li><strong>Backup:</strong> siempre hacer una copia de seguridad completa antes de aplicar cambios que toquen datos reales, especialmente migraciones de base de datos.</li>
