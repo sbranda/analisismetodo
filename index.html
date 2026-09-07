@@ -24,6 +24,36 @@
     --radius:3px;
   }
   *{box-sizing:border-box;}
+  #custom-splash{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:var(--navy);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    opacity:1;
+    transition:opacity .5s ease;
+  }
+  #custom-splash.oculto{opacity:0; pointer-events:none;}
+  #custom-splash img{
+    width:128px;
+    height:128px;
+    border-radius:28px;
+    box-shadow:0 6px 24px rgba(0,0,0,.4);
+  }
+  #custom-splash p{
+    font-family:'Courier New',monospace;
+    color:var(--paper);
+    font-size:.95rem;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    text-align:center;
+    max-width:280px;
+    margin:0;
+  }
   html,body{margin:0;padding:0; max-width:100%; overflow-x:hidden;}
   body{
     background:var(--navy);
@@ -612,6 +642,11 @@
 </style>
 </head>
 <body>
+
+<div id="custom-splash">
+  <img src="icon-512.png" alt="Ícono de la app">
+  <p>Análisis y Metodología de Sistemas</p>
+</div>
 
 <header class="app-header">
   <h1>Análisis y Metodología de Sistemas</h1>
@@ -3762,6 +3797,14 @@ document.getElementById("btn-restablecer").addEventListener("click", ()=>{
    INIT
    ============================================================ */
 render();
+
+const customSplash = document.getElementById("custom-splash");
+if(customSplash){
+  setTimeout(()=>{
+    customSplash.classList.add("oculto");
+    setTimeout(()=> customSplash.remove(), 600);
+  }, 900);
+}
 
 /* Service worker (offline) */
 if("serviceWorker" in navigator){
