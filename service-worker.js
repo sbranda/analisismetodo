@@ -1,4 +1,4 @@
-const CACHE_NAME = "amys-v2";
+const CACHE_NAME = "amys-v3";
 const ASSETS = [
   "./",
   "./index.html",
