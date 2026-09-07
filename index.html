@@ -664,7 +664,7 @@
     <button data-mod="7">Módulo 6<br>Despliegue <span class="stamp-mini" id="stamp7"></span></button>
     <button data-mod="11" class="tab-apuntes">Cuestionario</button>
     <button data-mod="4">Extra<br>Jefes <span class="stamp-mini" id="stamp4"></span></button>
-    <button data-mod="8">Extra<br>Problemas <span class="stamp-mini" id="stamp8"></span></button>
+    <button data-mod="8">Extra<br>Situaciones <span class="stamp-mini" id="stamp8"></span></button>
   </nav>
 </header>
 
@@ -2620,7 +2620,7 @@ function renderModulo7(){
 }
 
 /* ============================================================
-   MÓDULO 8 — EXTRA: PROBLEMAS DEL ANALISTA
+   MÓDULO 8 — EXTRA: SITUACIONES DEL ANALISTA
    ============================================================ */
 const CASOS_M8 = [
   {
@@ -2780,7 +2780,7 @@ function renderModulo8(){
   if(m8.mostrandoFeedback){
     const ultima = m8.respuestas[m8.respuestas.length-1];
     sheet.innerHTML = `
-      <span class="eyebrow">Extra · Problemas del Analista · Caso ${m8.indice+1} de ${CASOS_M8.length} · ${caso.categoria} · Devolución</span>
+      <span class="eyebrow">Extra · Situaciones del Analista · Caso ${m8.indice+1} de ${CASOS_M8.length} · ${caso.categoria} · Devolución</span>
       <h2>${ultima.correcta ? '✅ Buena resolución' : '❌ Conviene repensarlo'}</h2>
       <p><strong>Elegiste:</strong> ${ultima.textoElegido}</p>
       <p class="lead">${ultima.feedback}</p>
@@ -2792,7 +2792,7 @@ function renderModulo8(){
   }
 
   sheet.innerHTML = `
-    <span class="eyebrow">Extra · Problemas del Analista · Caso ${m8.indice+1} de ${CASOS_M8.length} · ${caso.categoria}</span>
+    <span class="eyebrow">Extra · Situaciones del Analista · Caso ${m8.indice+1} de ${CASOS_M8.length} · ${caso.categoria}</span>
     <h2>${caso.titulo}</h2>
     <p class="lead">${caso.contexto}</p>
     <p><strong>${caso.pregunta}</strong></p>
@@ -3074,7 +3074,7 @@ const APUNTES = [
         <li><strong>Priorización y negociación de alcance:</strong> ayudar al cliente a decidir qué construir primero cuando no se puede hacer todo a la vez, y gestionar los cambios de alcance ("scope creep") de forma ordenada.</li>
         <li><strong>Ética profesional:</strong> ser transparente sobre riesgos y limitaciones, y no prometer algo que se sabe inviable con tal de quedar bien en una reunión.</li>
       </ul>
-      <p>Estas habilidades son las que se practican en los módulos <strong>Extra</strong> de esta app: Jefes y Problemas del Analista.</p>
+      <p>Estas habilidades son las que se practican en los módulos <strong>Extra</strong> de esta app: Jefes y Situaciones del Analista.</p>
       <div class="en-criollo"><span class="quien">En palabras simples</span>Ser buen analista no es solo saber de tecnología. También es saber escuchar, explicar las cosas claro, y no prometer lo que no se puede cumplir.</div>
     `
   },
@@ -3498,7 +3498,7 @@ const INDICE_GRUPOS = [
     grupo:"Extra: habilidades blandas del analista",
     items:[
       {mod:4, titulo:"Extra · Jefes", texto:"Practicá cómo manejar distintos perfiles de jefes en situaciones típicas del trabajo."},
-      {mod:8, titulo:"Extra · Problemas del Analista", texto:"Resolvé situaciones frecuentes del día a día profesional: alcance cambiante, clientes indecisos y más."}
+      {mod:8, titulo:"Extra · Situaciones del Analista", texto:"Resolvé situaciones frecuentes del día a día profesional: alcance cambiante, clientes indecisos y más."}
     ]
   }
 ];
@@ -3682,7 +3682,7 @@ function exportarResultados(){
 
   // Extra — Problemas del analista
   l.push("-".repeat(60));
-  l.push("EXTRA · PROBLEMAS DEL ANALISTA");
+  l.push("EXTRA · SITUACIONES DEL ANALISTA");
   l.push("-".repeat(60));
   l.push(seccionCompletada(8) ? `Completo — Puntaje: ${scoreDeSeccion(8)}%` : "Pendiente");
   l.push("");
