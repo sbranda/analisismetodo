@@ -639,6 +639,41 @@
     border:1px solid var(--navy);
     padding:6px 10px;
   }
+
+  /* Impresión / exportar Apuntes a PDF: se activa solo cuando el body
+     tiene la clase .modo-impresion-apuntes (ver exportarApuntesPDF). */
+  @media print{
+    body.modo-impresion-apuntes #custom-splash,
+    body.modo-impresion-apuntes .app-header nav.tabs,
+    body.modo-impresion-apuntes .app-header .definicion,
+    body.modo-impresion-apuntes footer,
+    body.modo-impresion-apuntes .install-banner,
+    body.modo-impresion-apuntes #btn-exportar-apuntes-pdf{
+      display:none !important;
+    }
+    body.modo-impresion-apuntes .app-header{
+      background:#fff;
+      color:#000;
+      border-bottom:2px solid #000;
+    }
+    body.modo-impresion-apuntes .app-header h1,
+    body.modo-impresion-apuntes .app-header p{
+      color:#000;
+    }
+    body.modo-impresion-apuntes .apunte{
+      break-inside:avoid;
+      border:1px solid #999;
+    }
+    body.modo-impresion-apuntes .apunte summary{
+      color:#000;
+    }
+    body.modo-impresion-apuntes .apunte:not([open]) .apunte-cuerpo{
+      display:block !important;
+    }
+    body.modo-impresion-apuntes svg text{
+      fill:#000;
+    }
+  }
 </style>
 </head>
 <body>
@@ -3139,10 +3174,41 @@ function renderApuntes(){
     <span class="eyebrow">Apuntes</span>
     <h2>Teoría de Análisis y Metodología de Sistemas</h2>
     <p class="lead">Un repaso del contenido teórico detrás de cada módulo práctico de la app. Tocá cada tema para desplegarlo.</p>
+    <button class="secondary" id="btn-exportar-apuntes-pdf" style="margin-top:10px; margin-bottom:10px; margin-left:0;">Exportar apuntes en PDF</button>
     ${items}
   `;
 
   main.appendChild(sheet);
+
+  sheet.querySelector("#btn-exportar-apuntes-pdf").addEventListener("click", exportarApuntesPDF);
+}
+
+function exportarApuntesPDF(){
+  // Abre todos los temas para que se impriman completos, activa el modo
+  // de impresión (oculta header/nav/footer vía CSS @media print) y
+  // dispara el diálogo de impresión del navegador, desde donde se puede
+  // guardar como PDF. No requiere ninguna librería externa: funciona
+  // 100% offline, igual que el resto de la app.
+  const detalles = document.querySelectorAll(".apunte");
+  const estadosPrevios = Array.from(detalles).map(d=>d.open);
+  detalles.forEach(d=>{ d.open = true; });
+
+  document.body.classList.add("modo-impresion-apuntes");
+
+  let restaurado = false;
+  const restaurar = ()=>{
+    if(restaurado) return;
+    restaurado = true;
+    document.body.classList.remove("modo-impresion-apuntes");
+    detalles.forEach((d,i)=>{ d.open = estadosPrevios[i]; });
+    window.removeEventListener("afterprint", restaurar);
+  };
+  window.addEventListener("afterprint", restaurar);
+
+  window.print();
+
+  // Fallback por si el navegador no dispara "afterprint" (algunos móviles).
+  setTimeout(restaurar, 2000);
 }
 
 /* ============================================================
